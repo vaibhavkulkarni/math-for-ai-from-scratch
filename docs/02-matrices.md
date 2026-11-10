@@ -6,50 +6,105 @@
 
 *Where this fits in the book:* every word of *"The cat sat on the …"* passes through dozens of these machines before the model makes its guess.
 
-**The big idea:** a matrix is a machine that takes a vector in and gives a new vector out. A neural network layer is exactly this, plus one small twist.
+**The big idea:** a matrix is a stack of dot-product questions. Put a vector in, ask it every question, and the answers form a new vector. A neural network layer is exactly this, plus one small twist.
 
-## A matrix is a grid, and also a verb
+## Step 1: One question is one dot product
+
+Start with something you already know. In Chapter 1 each movie became a vector `[how funny, how scary, how long]`, and the dot product multiplied matching entries and added them up.
+
+Now suppose you want a single new number for each movie: **"how much of a horror-comedy is this?"** A horror-comedy should be both funny *and* scary, and length doesn't matter. So write down one weight per score, saying how much each one counts:
+
+| | funny | scary | long |
+| --- | --- | --- | --- |
+| weights for "horror-comedy?" | 1 | 1 | 0 |
+
+The answer for a movie is the dot product of these weights with the movie's scores. For *Scream* `[4, 8, 6]`:
+
+`[1, 1, 0] · [4, 8, 6] = 1×4 + 1×8 + 0×6 = 12`
+
+*Shaun of the Dead* `[8, 6, 6]` scores `8 + 6 + 0 = 14`, the highest of our four films, which is fair for a film literally sold as a horror comedy.
+
+The weights `[1, 1, 0]` act as a **detector**: they turn three raw scores into one answer to one question. Change the weights and you ask a different question.
+
+## Step 2: Several questions at once is a matrix
+
+Let's ask a second question as well: **"how family-friendly is this?"** Funny is good, scary is bad, length doesn't matter, so the weights are `[1, -1, 0]`. For *Scream*: `1×4 - 1×8 + 0×6 = -4`. Not one for the children.
+
+Now write the two rows of weights one above the other. A grid of numbers like this is a **matrix**:
 
 $$
-\begin{bmatrix} 2 & 0 \\ 0 & 3 \end{bmatrix}
+W = \begin{bmatrix} 1 & 1 & 0 \\ 1 & -1 & 0 \end{bmatrix}
+\quad
+\begin{matrix} \leftarrow \text{horror-comedy?} \\ \leftarrow \text{family-friendly?} \end{matrix}
 $$
 
-Feed it the vector `[1, 1]`. Out comes `[2, 3]`: this matrix **stretches** the x-direction by 2 and the y-direction by 3. Other matrices rotate, flip or squash space. Same grid-of-numbers shape, different behaviour.
-
-A machine needs to know what fits into it. A 2 × 2 matrix takes 2 numbers and gives back 2. How can you tell what *any* matrix takes and gives?
-
-## Shapes and notation
-
-A matrix with `m` rows and `n` columns is called an **m × n matrix** ("m by n"). The entry in row `i`, column `j` is written `Wᵢⱼ`. Here is a 2 × 3 matrix:
+**"Feeding a vector into a matrix" means asking every row its question.** Take the dot product of each row with the vector, and stack the answers:
 
 $$
-W = \begin{bmatrix} 1 & 0 & 2 \\ 3 & 1 & 0 \end{bmatrix}
+\begin{bmatrix} 1 & 1 & 0 \\ 1 & -1 & 0 \end{bmatrix}
+\begin{bmatrix} 4 \\ 8 \\ 6 \end{bmatrix}
+=
+\begin{bmatrix} 1\times4 + 1\times8 + 0\times6 \\ 1\times4 - 1\times8 + 0\times6 \end{bmatrix}
+=
+\begin{bmatrix} 12 \\ -4 \end{bmatrix}
 $$
 
-Its **shape** is (2, 3). A list of 3 numbers is treated as a column of height 3, a 3 × 1 matrix. The rule for multiplying is:
+```mermaid
+flowchart LR
+    S["Scream<br/>[4, 8, 6]"] --> R1["row 1: horror-comedy?<br/>[1, 1, 0] · [4, 8, 6]"]
+    S --> R2["row 2: family-friendly?<br/>[1, -1, 0] · [4, 8, 6]"]
+    R1 --> O["output<br/>[12, -4]"]
+    R2 --> O
+```
+
+That is all "multiplying a matrix by a vector" means. It is also written `W x`, or `W @ x` in Python.
+
+> 🤔 **Pause and predict.** Feed *Paddington* `[9, 0, 5]` into the same matrix. What comes out?
+>
+> <details markdown="1"><summary>Answer</summary>
+>
+> Row 1: `9 + 0 + 0 = 9`. Row 2: `9 - 0 + 0 = 9`. The output is `[9, 9]`: a little bit horror-comedy (it is very funny), and very family-friendly.
+>
+> </details>
+
+Here are all four films after going through the matrix:
+
+| Movie | In: `[funny, scary, long]` | Out: `[horror-comedy, family-friendly]` |
+| --- | --- | --- |
+| *Scream* | `[4, 8, 6]` | `[12, -4]` |
+| *Shaun of the Dead* | `[8, 6, 6]` | `[14, 2]` |
+| *Paddington* | `[9, 0, 5]` | `[9, 9]` |
+| *The Conjuring* | `[1, 10, 7]` | `[11, -9]` |
+
+Notice what happened. Three raw scores went in, and two new, more *useful* numbers came out: answers to the questions we actually care about. **That is exactly what a layer in a neural network does.** The only difference is that a network learns its own questions (the weights) from data, instead of us writing them down. A layer might turn 784 pixel values into 128 answers, each one detecting some pattern, like "is there a loop at the top?" or "is there a straight stroke on the right?".
+
+## Step 3: Shapes: what goes in and what comes out
+
+Every row is dotted with the input, so **each row needs exactly one weight per input number**. Our matrix has 2 rows (2 questions, so 2 outputs) and 3 columns (3 inputs). It is called a **2 × 3 matrix** ("2 by 3"), and its **shape** is (2, 3). The entry in row `i`, column `j` is written `Wᵢⱼ`.
+
+The rule, writing the input as a column of 3 numbers (a 3 × 1 matrix):
 
 > The inner numbers must match, and the outer numbers give the answer's shape. (2 × **3**) times (**3** × 1) gives (2 × 1).
 
 ```mermaid
 flowchart LR
-    A["W<br/>2 × 3"] -->|"inner 3 = 3 ✓"| C["result<br/>2 × 1"]
-    B["x<br/>3 × 1"] --> C
+    A["W<br/>2 × 3<br/>2 questions, 3 inputs each"] -->|"inner 3 = 3 ✓"| C["result<br/>2 × 1<br/>2 answers"]
+    B["x<br/>3 × 1<br/>3 numbers"] --> C
 ```
 
-So this matrix takes **3 numbers in and gives 2 numbers out**. Try it on `[1, 2, 3]`:
+> 🤔 **Pause and predict.** Feed `[1, 2, 3]` into `[[1, 0, 2], [3, 1, 0]]`. What comes out, and what shape is it?
+>
+> <details markdown="1"><summary>Answer</summary>
+>
+> Row 1: `1×1 + 0×2 + 2×3 = 7`. Row 2: `3×1 + 1×2 + 0×3 = 5`. The output is `[7, 5]`: 2 numbers, because the matrix has 2 rows.
+>
+> </details>
 
-- Row 1: `1×1 + 0×2 + 2×3 = 7`
-- Row 2: `3×1 + 1×2 + 0×3 = 5`
+If the shapes don't match, say a matrix with 3 columns and an input of 4 numbers, the dot products simply can't be done. A practical tip: **shape mistakes are the most common bug in AI code.** When something breaks, print `.shape` on everything.
 
-The output is `[7, 5]`. Notice that the matrix changed the *size* of the data, from 3 numbers to 2. That is how networks compress or expand information: a layer might turn 784 pixel values into 128 features.
+## Step 4: A second way to read the same calculation
 
-A practical tip: **shape mistakes are the most common bug in AI code.** When something breaks, print `.shape` on everything.
-
-We have been multiplying without saying exactly how. Here is the recipe, and what it means.
-
-## How the multiplication works
-
-To multiply a matrix by a vector, take the **dot product of each row with the vector**:
+Rows-as-questions is one view. Here is another, equally useful one. Work out `[[1, 2], [3, 4]]` times `[5, 6]` row by row:
 
 $$
 \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}
@@ -60,23 +115,36 @@ $$
 \begin{bmatrix} 17 \\ 39 \end{bmatrix}
 $$
 
-> 🤔 **Pause and predict.** Work out `[[2, 0], [1, 1]]` times `[3, 4]`.
+Now look at the same numbers **column by column**: the output is 5 lots of the first column plus 6 lots of the second column, `5 × [1, 3] + 6 × [2, 4] = [5 + 12, 15 + 24] = [17, 39]`. **The input numbers say how much of each column to mix in.**
+
+Rows-as-questions and columns-as-ingredients are two views of one calculation. The first is best for understanding layers. The second is best for the pictures that come next.
+
+> 🤔 **Pause and predict.** Work out `[[2, 0], [1, 1]]` times `[3, 4]`, either way.
 >
 > <details markdown="1"><summary>Answer</summary>
 >
-> Row 1: `2×3 + 0×4 = 6`. Row 2: `1×3 + 1×4 = 7`. The answer is `[6, 7]`.
+> By rows: `2×3 + 0×4 = 6` and `1×3 + 1×4 = 7`. By columns: `3 × [2, 1] + 4 × [0, 1] = [6, 7]`. The answer is `[6, 7]` both ways.
 >
 > </details>
 
-That is all it is. Each output number answers one question: "how much does the input align with this row?" So **each row is a detector**. A row that is large where the input is large is detecting that pattern.
+## Step 5: Watching a matrix reshape space
 
-There is a second, equally useful way to read the same product: **the output is a mix of the matrix's columns**, using the input numbers as the amounts. Here `5 × [1, 3] + 6 × [2, 4] = [5 + 12, 15 + 24] = [17, 39]`. Rows-as-detectors and columns-as-ingredients are two views of one calculation. Use whichever makes the picture clearer.
+With two inputs and two outputs, you can do something even better than calculate: *see* what a matrix does to the whole plane. Take
 
-Rows act as detectors. But in two dimensions you can do something even better: watch a matrix move the whole plane.
+$$
+\begin{bmatrix} 2 & 0 \\ 0 & 3 \end{bmatrix}
+\begin{bmatrix} 1 \\ 1 \end{bmatrix}
+=
+\begin{bmatrix} 2\times1 + 0\times1 \\ 0\times1 + 3\times1 \end{bmatrix}
+=
+\begin{bmatrix} 2 \\ 3 \end{bmatrix}
+$$
 
-## Reshaping space: a few 2D examples
+Feed in the point `[1, 1]` and out comes `[2, 3]`: the first number got doubled and the second tripled. Do that to *every* point and the whole plane gets **stretched**, twice as wide and three times as tall. Other matrices rotate, flip or squash the plane instead. It is the same grid-of-numbers shape each time, with different behaviour.
 
-In two dimensions you can *see* what a matrix does. Apply each of these to the point `[1, 2]`:
+### A few more 2D examples
+
+Here are three matrices, each fed the point `[1, 2]`:
 
 | Matrix | What it does | Result on `[1, 2]` |
 | --- | --- | --- |
@@ -84,7 +152,7 @@ In two dimensions you can *see* what a matrix does. Apply each of these to the p
 | `[[-1, 0], [0, 1]]` | mirrors left-right | `[-1, 2]` |
 | `[[0, -1], [1, 0]]` | rotates 90° anticlockwise | `[-2, 1]` |
 
-There is a neat way to read any matrix: **its first column is where the arrow `[1, 0]` lands, and its second column is where `[0, 1]` lands.** In the rotation matrix, the first column is `[0, 1]`, so the arrow pointing east is sent to point north, exactly what a quarter turn does. A matrix is fully described by where it sends the basic arrows.
+The columns view from Step 4 gives a neat way to read any matrix. Feeding in `[1, 0]` means "one lot of the first column, none of the second", so **the first column is exactly where the arrow `[1, 0]` lands, and the second column is where `[0, 1]` lands.** In the rotation matrix, the first column is `[0, 1]`, so the arrow pointing east is sent to point north, exactly what a quarter turn does. A matrix is fully described by where it sends the basic arrows.
 
 ![Three matrices applied to a small triangle: a stretch, a left-right mirror, and a 90 degree rotation, with the images of the basic arrows shown](figures/ch2_transforms.svg)
 

@@ -322,6 +322,29 @@ def ch1_cosine():
     save(fig, "ch1_cosine.svg")
 
 
+def ch2b_equations():
+    x = np.linspace(-1.5, 3.5, 2)
+    fig, axs = plt.subplots(1, 3, figsize=(11, 3.7), sharey=True)
+    cases = [
+        ("one solution: the lines cross", [(2, 3, 6, BLUE, "2x + 3y = 6"), (-1, 1, 1, ORANGE, "−x + y = 1")], (0.6, 1.6)),
+        ("no solution: parallel lines", [(2, 3, 6, BLUE, "2x + 3y = 6"), (4, 6, 3, ORANGE, "4x + 6y = 3")], None),
+        ("infinitely many: the same line twice", [(2, 3, 6, BLUE, "2x + 3y = 6"), (4, 6, 12, ORANGE, "4x + 6y = 12")], None),
+    ]
+    for ax, (title, lines, pt) in zip(axs, cases):
+        axes_through_origin(ax)
+        for k, (a, b_, c, col, lab) in enumerate(lines):
+            ls = "--" if (k == 1 and "same" in title) else "-"
+            ax.plot(x, (c - a * x) / b_, color=col, lw=2.6 if k == 0 else 2, ls=ls, label=lab)
+        if pt:
+            ax.scatter([pt[0]], [pt[1]], s=80, color=INK, zorder=5)
+            ax.annotate("(0.6, 1.6)", pt, xytext=(1.2, 2.4), fontsize=10, arrowprops=dict(arrowstyle="->", color=INK2))
+        ax.set_xlim(-1.5, 3.5); ax.set_ylim(-1.2, 3.2); ax.set_title(title, fontsize=10.5)
+        ax.legend(loc="lower left", fontsize=9)
+        ax.set_xlabel("x")
+    axs[0].set_ylabel("y")
+    save(fig, "ch2b_equations.svg")
+
+
 # ============================ Chapter 2 ============================
 def ch2():
     tri = np.array([[0, 0], [1, 0], [0.4, 0.8]])
@@ -1018,5 +1041,5 @@ if __name__ == "__main__":
     timeline()
     ch0_extra()
     extra_topics()
-    for fn in (ch1_cosine, ch0, ch1, ch2, ch3, ch5, ch7, ch8, ch9, ch10):
+    for fn in (ch2b_equations, ch1_cosine, ch0, ch1, ch2, ch3, ch5, ch7, ch8, ch9, ch10):
         fn()

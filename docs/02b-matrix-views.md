@@ -6,20 +6,95 @@
 
 *This chapter is optional.* Nothing later depends on it, so you can go straight to [Chapter 3](03-derivatives.md) and come back whenever a paper or tutorial mentions determinants, eigenvectors, SVD, LoRA or convolutions. They appear constantly in AI writing, and each has a clear picture.
 
-## Step 1: Where matrices came from
+## Step 1: Where matrices came from: solving equations
 
-Long before neural networks, matrices were invented to solve **systems of equations**. Take
+Long before neural networks, matrices were invented to solve puzzles like this one: **find two numbers `x` and `y` such that**
 
 $$
 \begin{aligned} 2x + 3y &= 6 \\ -x + y &= 1 \end{aligned}
-\quad\Longleftrightarrow\quad
+$$
+
+Look at the left-hand sides with Chapter 2 eyes. `2x + 3y` is the dot product of the row `[2, 3]` with the input `[x, y]`, and `-x + y` is the row `[-1, 1]` dotted with the same input. So the whole puzzle is one matrix being fed one vector:
+
+$$
 \begin{bmatrix} 2 & 3 \\ -1 & 1 \end{bmatrix}
 \begin{bmatrix} x \\ y \end{bmatrix}
 =
 \begin{bmatrix} 6 \\ 1 \end{bmatrix}
 $$
 
-The matrix holds the coefficients, the vector holds the unknowns, and one line stands for the whole system. The solution is `x = 0.6, y = 1.6` (check it: `1.2 + 4.8 = 6` and `-0.6 + 1.6 = 1`). In numpy, `np.linalg.solve(A, b)` does this for thousands of equations at once.
+In Chapter 2 we knew the input and worked out the output. Here it is the other way round: **we know the output `[6, 1]`, and want the input that produced it.** We need to run the machine backwards. There are three ways to see how.
+
+### View 1: the picture
+
+Each equation, on its own, is satisfied by a whole line of points. (`2x + 3y = 6` holds at `(3, 0)`, at `(0, 2)`, and everywhere on the straight line between and beyond them.) We need a point that is on **both** lines at once: the place where they cross.
+
+![Three panels. Left: the lines 2x + 3y = 6 and -x + y = 1 cross at the single point (0.6, 1.6). Middle: 2x + 3y = 6 and 4x + 6y = 3 are parallel and never meet. Right: 2x + 3y = 6 and 4x + 6y = 12 are the same line, so every point on it is a solution](figures/ch2b_equations.svg)
+
+The left panel shows our puzzle: the lines cross at exactly one point, `(0.6, 1.6)`. The other two panels show how a puzzle can go wrong. We will come back to them.
+
+### View 2: elimination, step by step
+
+The picture shows *where* the answer is. To get it exactly, combine the equations so that one unknown disappears. Write each equation as a row of the grid, with its answer on the right:
+
+| | `x` | `y` | `=` |
+| --- | --- | --- | --- |
+| row 1 | 2 | 3 | 6 |
+| row 2 | -1 | 1 | 1 |
+
+1. **Get rid of `x` in row 2.** Row 2 has `-1` where row 1 has `2`. Add half of row 1 to row 2: `-1 + ½×2 = 0` for `x`, `1 + ½×3 = 2.5` for `y`, and `1 + ½×6 = 4` on the right. Row 2 is now `0x + 2.5y = 4`. Adding equations keeps them true, because you add the same amount to both sides.
+2. **Solve row 2.** `2.5y = 4`, so `y = 4 / 2.5 = 1.6`.
+3. **Work backwards into row 1.** `2x + 3×1.6 = 6`, so `2x = 6 - 4.8 = 1.2`, and `x = 0.6`.
+
+Check: `2×0.6 + 3×1.6 = 1.2 + 4.8 = 6` ✓ and `-0.6 + 1.6 = 1` ✓.
+
+Notice that we never needed the letters `x` and `y` while combining rows. We only did arithmetic on the grid of numbers. That is the point of the matrix: it is the bookkeeping, and the same steps work for 3 equations or 3,000. This method is called **Gaussian elimination**, and it is what `np.linalg.solve(A, b)` does inside, very fast.
+
+### View 3: run the machine backwards with the inverse matrix
+
+Chapter 0 met **inverse functions**: machines that undo other machines. Many matrices have one too, the **inverse matrix**, written `A⁻¹`. Feed it the output and it hands back the input:
+
+$$
+\begin{bmatrix} x \\ y \end{bmatrix} = A^{-1} \begin{bmatrix} 6 \\ 1 \end{bmatrix}
+$$
+
+For a 2 × 2 matrix there is a short recipe. **Swap** the two numbers on the main diagonal, **flip the signs** of the other two, and **divide everything** by `ad - bc`:
+
+$$
+A = \begin{bmatrix} a & b \\ c & d \end{bmatrix}
+\quad\Longrightarrow\quad
+A^{-1} = \frac{1}{ad - bc}\begin{bmatrix} d & -b \\ -c & a \end{bmatrix}
+$$
+
+For our `A = [[2, 3], [-1, 1]]`: `ad - bc = 2×1 - 3×(-1) = 2 + 3 = 5`, so
+
+$$
+A^{-1} = \frac{1}{5}\begin{bmatrix} 1 & -3 \\ 1 & 2 \end{bmatrix},
+\qquad
+A^{-1}\begin{bmatrix} 6 \\ 1 \end{bmatrix} = \frac{1}{5}\begin{bmatrix} 1\times6 - 3\times1 \\ 1\times6 + 2\times1 \end{bmatrix} = \frac{1}{5}\begin{bmatrix} 3 \\ 8 \end{bmatrix} = \begin{bmatrix} 0.6 \\ 1.6 \end{bmatrix}
+$$
+
+It is the same answer, found by literally running the machine in reverse.
+
+> 🤔 **Pause and predict.** Check the recipe: multiply `A⁻¹` by `A`. What should you get, and why?
+>
+> <details markdown="1"><summary>Answer</summary>
+>
+> The **identity matrix** `[[1, 0], [0, 1]]`, the machine that changes nothing. "Do `A`, then undo it" must leave every input exactly as it was. Row 1 of `A⁻¹`, `[1, -3]/5`, times column 1 of `A`, `[2, -1]`, gives `(2 + 3)/5 = 1`, and the other entries work out the same way.
+>
+> </details>
+
+In practice, computers prefer elimination: it is faster and less sensitive to rounding than computing the inverse. But the inverse is the clearest *picture* of what solving means.
+
+```python
+import numpy as np
+
+A = np.array([[2.0, 3.0], [-1.0, 1.0]])
+b = np.array([6.0, 1.0])
+print(np.linalg.solve(A, b))         # [0.6 1.6]  elimination, done for you
+print(np.linalg.inv(A) * 5)          # [[ 1. -3.] [ 1.  2.]]  the inverse, times 5
+print(np.linalg.inv(A) @ b)          # [0.6 1.6]  running the machine backwards
+```
 
 <details markdown="1">
 <summary>📜 <b>History:</b> matrices are 2,000 years old</summary>
@@ -28,11 +103,13 @@ Chinese mathematicians solved systems like this by arranging coefficients in a g
 
 </details>
 
-Solving equations raises a natural worry. Some systems have exactly one answer, some have none, and some have infinitely many. Can you tell which, just by looking at the matrix? That is the job of a single number.
+**Now look back at that division by 5.** The whole recipe divides by `ad - bc`. What if that number were **0**? You can't divide by zero, so there would be no inverse, and the machine could not be run backwards. That is exactly what happens in the middle and right panels of the picture. In `4x + 6y = 3` and `2x + 3y = 6`, for instance, `ad - bc = 4×3 - 6×2 = 0`: the lines are parallel and there is no solution at all, or they are the same line and there are infinitely many.
+
+So one number, `ad - bc`, tells you whether a system of equations has exactly one answer. It has a name, and a lovely picture of its own.
 
 ## Step 2: Does the matrix lose information? The determinant
 
-Apply a 2 × 2 matrix to the unit square (side 1, area 1) and it becomes a parallelogram. The **determinant** is the area of that parallelogram, with a minus sign if the shape got flipped over. For a 2 × 2 matrix there is a short formula:
+That number is called the **determinant**. Here is its picture. Apply a 2 × 2 matrix to the unit square (side 1, area 1) and it becomes a parallelogram. The determinant is the area of that parallelogram, with a minus sign if the shape got flipped over. For a 2 × 2 matrix it is exactly the `ad - bc` from Step 1:
 
 $$
 \det \begin{bmatrix} a & b \\ c & d \end{bmatrix} = ad - bc
@@ -40,6 +117,7 @@ $$
 
 ![The unit square under three matrices: the identity keeps area 1, a shear-and-stretch gives area 3, and a collapsing matrix squashes the square flat onto a line, area 0](figures/ch2_determinant.svg)
 
+- Our equation matrix `[[2, 3], [-1, 1]]` has determinant 5: it makes every area 5 times bigger, and nothing is squashed, so it can be undone.
 - `[[2, 1], [0, 1.5]]`: `2 × 1.5 - 1 × 0 = 3`. Every shape gets 3 times bigger.
 - `[[1, 2], [0.5, 1]]`: `1 × 1 - 2 × 0.5 = 0`. The square is **squashed flat onto a line**. The second column `[2, 1]` is just twice the first `[1, 0.5]`, so the two arrows point the same way and cannot span an area.
 
