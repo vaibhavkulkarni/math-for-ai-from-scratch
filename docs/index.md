@@ -16,7 +16,24 @@ You do not need to learn "all of calculus" or "all of linear algebra". You need 
 4. **Probability.** How to reason when you are not sure.
 5. **Entropy.** How to measure surprise, which is how language models are trained.
 
-That is it. Every chapter follows the same recipe: **a picture in your head, a small worked example, then about 20 lines of Python you can run.** No proofs. If you can follow a recipe and read a spreadsheet, you can follow this book.
+### One question, start to finish
+
+The whole book answers a single question: **how does a machine learn to finish the sentence *"The cat sat on the …"*?** Each chapter answers one piece of it, and each one opens with a concrete puzzle and closes by solving it.
+
+| Chapter | The piece of the answer |
+| --- | --- |
+| 1. Vectors | words become arrows that can be compared |
+| 2. Matrices | layers transform those arrows into more useful ones |
+| 3. Derivatives | each number in a layer learns which way to move |
+| 4. The chain rule | that signal travels back through every layer |
+| 5. Gradient descent | small steps, repeated, turn random numbers into knowledge |
+| 6. Probability | the answer is a list of likely next words, not one word |
+| 7. Distributions | randomness has shapes, from noisy data to starting weights |
+| 8. Entropy | the model's surprise at the real word is what it learns from |
+| 9. A network that learns | everything runs together for the first time |
+| 10. Attention | the model looks back at the right words, then writes "mat" |
+
+Every chapter follows the same recipe: **a picture in your head, a small worked example, then about 20 lines of Python you can run.** No proofs. If you can follow a recipe and read a spreadsheet, you can follow this book.
 
 ```mermaid
 flowchart LR
@@ -76,7 +93,8 @@ An older relative deserves a mention too. **Control theory**, the math of thermo
 
 0. [**The Math Toolkit**](00-toolkit.md): functions, graphs, exponents, logs and Σ. The notation everything else is written in.
 1. [**Vectors**](01-vectors.md): lists of numbers as arrows, and similarity as geometry.
-2. [**Matrices**](02-matrices.md): machines that reshape space, what a neural network layer really is, and how images are scanned with convolutions.
+2. [**Matrices**](02-matrices.md): machines that reshape space, and what a neural network layer really is.
+    - *Optional side trip:* [**2½. More Ways to See a Matrix**](02b-matrix-views.md): determinants, eigenvectors, SVD and convolutions.
 3. [**Derivatives**](03-derivatives.md): if I nudge the input, how much does the output move?
 4. [**The Chain Rule**](04-chain-rule.md): nudges through many steps, and the secret of backpropagation.
 5. [**Gradient Descent**](05-gradient-descent.md): learning as rolling downhill, even on bumpy ground.

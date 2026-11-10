@@ -122,3 +122,32 @@
 @media (prefers-reduced-motion: reduce) {
   .toc-panel__backdrop, .toc-panel__box { animation: none; }
 }
+
+/* ---------- Fold-out boxes (<details>): answers, history, detours ----------
+   Quiet by default: one line with a thin rule, opening into normal-size text. */
+.md-typeset details {
+  font-size: inherit;
+  border: 0;
+  border-left: 3px solid var(--md-default-fg-color--lightest);
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  margin: 0.8em 0;
+  padding: 0 0 0 0.9rem;
+}
+.md-typeset details[open] { border-left-color: var(--md-accent-fg-color); }
+.md-typeset details > summary {
+  background: transparent;
+  border: 0;
+  padding: 0.2em 1.6rem 0.2em 0 !important;
+  margin: 0;
+  font-weight: 500;
+  font-size: 0.8rem;
+  color: var(--md-default-fg-color--light);
+  cursor: pointer;
+}
+.md-typeset details > summary:hover { color: var(--md-accent-fg-color); }
+.md-typeset details > summary::before { display: none; }          /* no pencil icon */
+.md-typeset details > summary::after { top: 0.35em; right: 0; }   /* chevron */
+.md-typeset details > :not(summary) { margin-top: 0.4em; }
+.md-typeset details > :last-child { margin-bottom: 0.6em; }

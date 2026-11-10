@@ -11,6 +11,7 @@ nav:
   - "0. The Math Toolkit": 00-toolkit.md
   - "1. Vectors": 01-vectors.md
   - "2. Matrices": 02-matrices.md
+  - "2½. More Ways to See a Matrix (optional)": 02b-matrix-views.md
   - "3. Derivatives": 03-derivatives.md
   - "4. The Chain Rule": 04-chain-rule.md
   - "5. Gradient Descent": 05-gradient-descent.md

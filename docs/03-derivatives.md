@@ -1,5 +1,11 @@
 # Chapter 3: How Steep Is It? (Derivatives)
 
+> 🧭 **The question.** The layer from Chapter 2 is full of random numbers, so it produces nonsense. A real network has millions of these numbers. Suppose you nudge just *one* of them a tiny bit. Does the network's answer get better or worse, and by how much?
+>
+> If we can answer that for every number at once, we know how to fix the whole network. This chapter answers it.
+
+*Where this fits in the book:* this is the first half of how a model learns to say "mat" instead of nonsense.
+
 **The big idea:** a derivative answers one question: *if I nudge the input a tiny bit, how much does the output move?*
 
 ## Start with a straight line
@@ -9,6 +15,14 @@ Before curves, recall the slope of a straight road: **rise over run.** If a road
 For the line `y = 2x + 1`, going from `x = 0` to `x = 1` moves `y` from 1 to 3. Rise 2, run 1, slope 2. And it is the same slope everywhere, which is what makes a line a line.
 
 A curve is trickier because its slope keeps changing. The trick is to **zoom in until the curve looks straight.** Take `f(x) = x²` and measure the slope between `x = 1` and a point a little further along:
+
+> 🤔 **Pause and predict.** Before reading the table: as the second point gets closer to `x = 1`, what number do you think the slope of `x²` will settle on?
+>
+> <details markdown="1"><summary>Answer</summary>
+>
+> 2. Watch the last column of the table close in on it.
+>
+> </details>
 
 | Second point | Rise | Run | Slope |
 | --- | --- | --- | --- |
@@ -29,7 +43,14 @@ A **limit** asks what value a function is *heading towards* as the input approac
 
 A function is **continuous** if you can draw its graph without lifting your pencil: no jumps or holes. Derivatives need even more, a graph with no sharp corners. ReLU has one corner at 0, where the slope jumps from 0 to 1. In practice code simply picks one of the two values there, and nothing breaks.
 
-> 📜 **History.** Isaac Newton (in the 1660s, calling derivatives "fluxions") and Gottfried Wilhelm Leibniz (publishing in 1684) invented calculus independently, and spent years in a bitter dispute over who came first. We use Leibniz's notation `dy/dx` because it is so practical: it looks like a fraction and, as Chapter 4 shows, often behaves like one. The prime notation `f'(x)` is due to Joseph-Louis Lagrange (1797). Newton and Leibniz reasoned with "infinitely small" quantities that nobody could quite define. It took until the 19th century for Augustin-Louis Cauchy and Karl Weierstrass to make limits rigorous.
+<details markdown="1">
+<summary>📜 <b>History:</b> Newton, Leibniz and a bitter fight over who invented calculus</summary>
+
+Isaac Newton (in the 1660s, calling derivatives "fluxions") and Gottfried Wilhelm Leibniz (publishing in 1684) invented calculus independently, and spent years in a bitter dispute over who came first. We use Leibniz's notation `dy/dx` because it is so practical: it looks like a fraction and, as Chapter 4 shows, often behaves like one. The prime notation `f'(x)` is due to Joseph-Louis Lagrange (1797). Newton and Leibniz reasoned with "infinitely small" quantities that nobody could quite define. It took until the 19th century for Augustin-Louis Cauchy and Karl Weierstrass to make limits rigorous.
+
+</details>
+
+A straight line has one slope everywhere. A curve has a different slope at every point. Here is a way to picture that.
 
 ## The hill
 
@@ -47,6 +68,8 @@ $$
 f'(x) = \frac{df}{dx} = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h}
 $$
 
+Let's run the nudge recipe on real numbers.
+
 ## A worked example
 
 Take `f(x) = x²`, at `x = 3`. Nudge by `h = 0.001`:
@@ -58,6 +81,8 @@ The exact answer is 6. The rule you can memorise: the derivative of `x²` is `2x
 - `x²` becomes `2x`
 - `3x` becomes `3` (a straight line has constant slope)
 - a constant becomes `0` (flat ground)
+
+Nudging works, but it is slow and only approximate. For common functions there are exact shortcuts.
 
 ## The rules you actually need
 
@@ -77,9 +102,13 @@ Check one numerically. For `x³` at `x = 2` the rule says `3 × 2² = 12`. The n
 
 ReLU, from Chapter 2, has an easy derivative too: its slope is 0 for negative inputs (the line is flat) and 1 for positive inputs.
 
+A slope tells you which way is uphill. But what is special about the places where the slope is zero?
+
 ## Flat spots: where learning stops
 
 At the very bottom of a valley the ground is flat, so the slope is **zero**. That gives a way to find the lowest point: solve `f'(x) = 0`. (Pierre de Fermat used this trick in the 1630s, before calculus even had a name.) For `f(x) = (x - 5)²` the derivative is `2(x - 5)`, which is zero exactly when `x = 5`. And indeed `(5 - 5)² = 0` is the smallest possible value. Training a model is a search for such flat spots in a landscape far too big to solve by hand, which is why we creep towards them step by step in Chapter 5.
+
+So far: one input, one slope. A real model has millions of parameters. What does "slope" even mean then?
 
 ## Many inputs: partial derivatives and the gradient
 
@@ -89,6 +118,14 @@ Take `f(x, y) = x² + 3y`.
 
 - Freeze `y` and nudge `x`: the `3y` part does not move, so `∂f/∂x = 2x`.
 - Freeze `x` and nudge `y`: the `x²` part does not move, so `∂f/∂y = 3`.
+
+> 🤔 **Pause and predict.** For `f(x, y) = x² + 3y`, if you nudge `y` up by 0.1 (keeping `x` fixed), how much does `f` change?
+>
+> <details markdown="1"><summary>Answer</summary>
+>
+> It goes up by `3 × 0.1 = 0.3`, because `∂f/∂y = 3`.
+>
+> </details>
 
 Stack the partial derivatives into a list and you get the **gradient**:
 
@@ -104,11 +141,15 @@ Picture a bowl-shaped function of two inputs, seen from directly above like a co
 
 ![Contour rings of the bowl x squared plus 2 y squared, with gradient arrows pointing uphill and negative gradient arrows pointing downhill, all crossing the rings at right angles](figures/ch3_gradient_field.svg)
 
+Now connect this back to our random network.
+
 ## Why AI cares
 
 A model's **loss** is a number saying how wrong it is. The loss depends on the parameters. If the derivative of the loss with respect to a parameter is positive, increasing that parameter makes things worse, so you should decrease it. If it is negative, do the opposite. **The derivative tells each parameter which way to move.**
 
-With many parameters, you take one such slope per parameter. That bundle of slopes is called the **gradient**.
+With millions of parameters, the gradient gives every one of them its own instruction at the same time.
+
+Now let the computer do the nudging.
 
 ## Build it: measure slopes numerically
 
@@ -137,6 +178,8 @@ This **central difference** is centred on `x`, so the errors on the two sides ca
 
 **Try this:** find where `f(x) = (x - 2)²` has slope 0. Is that the top or the bottom of the curve? (That flat spot is exactly what learning is hunting for.)
 
+One more idea completes the picture of calculus. You won't need it until Chapter 7, so treat it as a short side road.
+
 ## The other half of calculus: integrals
 
 Derivatives cut a curve into tiny pieces to find its slope. **Integrals** do the opposite: they add up tiny pieces to find a total, most often the **area under a curve**. The recipe is to fill the area with thin rectangles, add up their areas, and use thinner rectangles until the total stops changing. It is another limit.
@@ -157,14 +200,28 @@ Read it as: "add up height × tiny width, for every sliver from 0 to π." In num
 
 The **fundamental theorem of calculus**, discovered by Newton, Leibniz and Newton's teacher Isaac Barrow, says that integrating and differentiating undo each other, just as `exp` and `ln` do. In AI, integrals mostly appear in probability: the chance of a range of outcomes is an area under a curve (Chapter 7), and an average over infinitely many possibilities is an integral.
 
+## Back to the question
+
+We asked: if you nudge one number inside a network, does its answer get better or worse, and by how much? That is exactly what a **derivative** measures. Its **sign** says which way the loss moves, and its **size** says how fast. With millions of numbers, the **gradient** answers the question for all of them at once, and since it points uphill, we will step the other way.
+
+There is a catch, though. In a real network a weight in the first layer reaches the loss only *through* every layer after it.
+
 ## Check yourself
 
-1. What is the derivative of `5x²`? *Answer: `10x`.*
-2. What is the slope of `x²` at `x = -1.5`? *Answer: `2 × (-1.5) = -3`. Negative means the curve is going downhill as x increases.*
-3. For `f(x, y) = 3x + y²`, what is the gradient at `(1, 2)`? *Answer: `[3, 2y] = [3, 4]`.*
-4. If the derivative of the loss with respect to a parameter `w` is `+6`, should `w` go up or down? *Answer: down, because increasing `w` would increase the loss.*
-5. What is the derivative of `x³ + 2x`? *Answer: `3x² + 2`.*
-6. Estimate the area under `f(x) = x` from 0 to 2 using 2 rectangles with heights taken at the midpoints. *Answer: midpoints 0.5 and 1.5, each width 1, so `0.5 + 1.5 = 2`. It is exact here, because the area is a triangle with base 2 and height 2.*
+Try each question on paper before opening the answer.
+
+1. What is the derivative of `5x²`?
+    <details markdown="1"><summary>Answer</summary>`10x`.</details>
+2. What is the slope of `x²` at `x = -1.5`?
+    <details markdown="1"><summary>Answer</summary>`2 × (-1.5) = -3`. Negative means the curve is going downhill as x increases.</details>
+3. For `f(x, y) = 3x + y²`, what is the gradient at `(1, 2)`?
+    <details markdown="1"><summary>Answer</summary>`[3, 2y] = [3, 4]`.</details>
+4. If the derivative of the loss with respect to a parameter `w` is `+6`, should `w` go up or down?
+    <details markdown="1"><summary>Answer</summary>down, because increasing `w` would increase the loss.</details>
+5. What is the derivative of `x³ + 2x`?
+    <details markdown="1"><summary>Answer</summary>`3x² + 2`.</details>
+6. Estimate the area under `f(x) = x` from 0 to 2 using 2 rectangles with heights taken at the midpoints.
+    <details markdown="1"><summary>Answer</summary>midpoints 0.5 and 1.5, each width 1, so `0.5 + 1.5 = 2`. It is exact here, because the area is a triangle with base 2 and height 2.</details>
 
 ## Chapter 3 in one breath
 
@@ -172,4 +229,4 @@ The derivative is the slope: nudge the input, measure the change in output. It t
 
 ---
 
-**Next:** [Chapter 4: Nudges Through a Chain](04-chain-rule.md): how a nudge travels through many steps, which is the whole secret of backpropagation.
+**Next:** [Chapter 4: Nudges Through a Chain](04-chain-rule.md). A derivative tells us how one step responds to a nudge. But how does a nudge travel down a long chain of steps, from a weight in layer 1 all the way to the loss? The answer is a single multiplication rule, and it is the secret behind every trained network.

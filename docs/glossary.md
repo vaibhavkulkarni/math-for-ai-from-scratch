@@ -10,13 +10,13 @@
 | Matrix | a grid of numbers that turns vectors into vectors | 2 |
 | Parameter (weight, bias) | a number inside a model that training adjusts | 2 |
 | Activation function | the bend after a layer (ReLU, tanh, sigmoid) | 2, 9 |
-| Determinant | how much a matrix scales area or volume; 0 means information is lost | 2 |
-| Rank | how many independent directions a matrix's output can point in | 2 |
-| Eigenvector, eigenvalue | a direction a matrix only stretches, and the stretch factor | 2 |
+| Determinant | how much a matrix scales area or volume; 0 means information is lost || 2½ |
+| Rank | how many independent directions a matrix's output can point in || 2½ |
+| Eigenvector, eigenvalue | a direction a matrix only stretches, and the stretch factor || 2½ |
 | Transpose | a matrix flipped so rows become columns; written Wᵀ | 2 |
 | Batch, tensor | many examples stacked into one array; an array with any number of dimensions | 2 |
-| SVD, singular value | any matrix as rotate, stretch, rotate; the stretch factors | 2 |
-| Convolution, kernel | sliding one small detector (the kernel) across an image or signal | 2 |
+| SVD, singular value | any matrix as rotate, stretch, rotate; the stretch factors || 2½ |
+| Convolution, kernel | sliding one small detector (the kernel) across an image or signal || 2½ |
 | Derivative | the slope: how much the output moves per tiny nudge of the input | 3 |
 | Gradient | the list of partial derivatives; points uphill | 3 |
 | Limit | the value a calculation heads towards as a gap shrinks to zero | 3 |

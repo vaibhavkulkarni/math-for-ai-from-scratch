@@ -1,5 +1,9 @@
 # Chapter 5: Rolling Downhill (Gradient Descent)
 
+> 🧭 **The question.** You have 100 noisy data points that roughly follow a straight line, and a model `y = w·x + b` whose two numbers start at zero. Nobody tells the model the right values of `w` and `b`. Can it find them on its own, just by feeling the slope of its own mistakes?
+
+*Where this fits in the book:* this loop, repeated trillions of times, is how every language model is trained.
+
 **The big idea:** learning is just repeating one tiny step: *nudge every parameter slightly in the direction that lowers the loss.*
 
 ## The loop
@@ -14,7 +18,14 @@ As a formula: `parameter = parameter - learning_rate × gradient`.
 
 The **learning rate** is your step size. Too big and you overshoot the valley and bounce around. Too small and you crawl. Picking it is part art, part experiment.
 
-> 📜 **History.** Augustin-Louis Cauchy described this method in 1847, while trying to compute the orbits of celestial bodies from systems of equations too messy to solve directly. The "stochastic" version that uses random samples of data (see mini-batches below) comes from Herbert Robbins and Sutton Monro in 1951. Every large AI model is trained with a direct descendant of Cauchy's 1847 idea.
+<details markdown="1">
+<summary>📜 <b>History:</b> gradient descent was invented to track planets</summary>
+
+Augustin-Louis Cauchy described this method in 1847, while trying to compute the orbits of celestial bodies from systems of equations too messy to solve directly. The "stochastic" version that uses random samples of data (see mini-batches below) comes from Herbert Robbins and Sutton Monro in 1951. Every large AI model is trained with a direct descendant of Cauchy's 1847 idea.
+
+</details>
+
+That recipe needs two things explained: what "downhill" means when there are many parameters, and why the formula has a minus sign.
 
 ## The loss landscape, and why there is a minus sign
 
@@ -34,41 +45,7 @@ $$
 \mathbf{w} \leftarrow \mathbf{w} - \eta \, \nabla L(\mathbf{w})
 $$
 
-## The learning rate, tested
-
-For the loss `L(w) = (w - 5)²`, one update multiplies the distance to the goal by `(1 - 2×lr)`. Starting from `w = 0`, five units from the minimum:
-
-| Learning rate | Each step multiplies the distance by | What happens |
-| --- | --- | --- |
-| 0.1 | 0.8 | smooth, steady approach |
-| 0.5 | 0 | lands on 5 in one step (a lucky case) |
-| 1.0 | -1 | bounces forever between 0 and 10 |
-| 1.1 | -1.2 | overshoots further each time and **diverges** |
-
-![Four panels of gradient descent on the same bowl: learning rate 0.1 approaches smoothly, 0.5 jumps straight to the bottom, 1.0 bounces between 0 and 10, and 1.1 flies further out each step](figures/ch5_learning_rates.svg)
-
-This is why learning rate is the first knob people tune. Too small wastes time; too large makes training blow up. Real loss landscapes are also bumpier than a clean bowl, with flat plateaus and several valleys. Remarkably, simple downhill stepping still works very well for neural networks, though nobody has a fully satisfying proof of why.
-
-## Bumpy landscapes: local minima, saddles and convexity
-
-The bowl `(w - 5)²` has one bottom, and every downhill path leads there. Real loss landscapes are messier, and a few words describe what can go wrong:
-
-![Left: a bumpy one-dimensional loss curve with a global minimum, a local maximum, and a higher local minimum. Right: a 3D saddle surface that curves up in one direction and down in the other, with the flat saddle point marked](figures/ch5_minima.svg)
-
-- **Global minimum:** the lowest point anywhere. This is what we want.
-- **Local minimum:** the bottom of a valley that is not the lowest one. Downhill steps get stuck there, because every direction nearby goes up.
-- **Saddle point:** flat (gradient zero) but not a minimum. It curves up in some directions and down in others, like a horse's saddle or a mountain pass.
-- **Plateau:** a wide, nearly flat region where the gradient is tiny, so progress crawls.
-
-A landscape with only one valley is called **convex**: bowl-shaped everywhere. The test is that a straight line drawn between any two points on the curve never dips below it. Convex problems are the friendly ones: there is a single valley, and gradient descent with a small enough step always reaches its bottom. Fitting a line with squared error, as in the code below, is convex.
-
-Neural networks are **not** convex. Even a simple symmetry shows this: swap two hidden units, with all their weights, and the network computes exactly the same function. So every good solution has many identical twins sitting in separate valleys. Why does downhill stepping still work so well? Three reasons, partly understood and partly still researched:
-
-1. **In high dimensions, true local minima are rare.** To be a minimum, the ground must curve upwards in *every* direction. As a rough picture, if each of 10 directions were equally likely to curve up or down, the chance that all 10 curve up would be `0.5¹⁰ ≈ 0.001`. With millions of parameters, almost every flat spot is a saddle with some way down, a point made by Yann Dauphin and colleagues in 2014.
-2. **Noise helps.** Near a saddle the gradient is small, so progress slows. But the randomness of mini-batches (below) and the inertia of momentum jiggle the parameters off the saddle and onto the downward slope.
-3. **The valleys that are found tend to be about equally good.** For large networks, different random starting points usually end in different places with very similar loss.
-
-Practitioners help things along with random starting weights, mini-batch noise, momentum, and **learning-rate schedules**: start with big steps to explore, then shrink them to settle into a valley.
+Let's watch the recipe work on the simplest possible loss.
 
 ## A worked example
 
@@ -81,6 +58,33 @@ Loss `L(w) = (w - 5)²`. Its derivative is `2(w - 5)`. Start at `w = 0` with lea
 The steps shrink as the slope flattens, and `w` glides toward 5. No one told it the answer; it only followed the slope.
 
 ![Gradient descent on the bowl (w minus 5) squared with learning rate 0.1: dots at w = 0, 1, 1.8, 2.44 and onwards, bunching up as they approach the minimum at 5](figures/ch5_descent_1d.svg)
+
+We chose a learning rate of 0.1. What would have happened with a different one?
+
+## The learning rate, tested
+
+For the loss `L(w) = (w - 5)²`, one update multiplies the distance to the goal by `(1 - 2×lr)`. Starting from `w = 0`, five units from the minimum:
+
+> 🤔 **Pause and predict.** With a learning rate of 1.0, the step multiplies the distance to the goal by `1 - 2 × 1.0 = -1`. What do you think happens?
+>
+> <details markdown="1"><summary>Answer</summary>
+>
+> It jumps from 0 to 10, then back to 0, then to 10, forever: the same distance each time, on alternating sides. The table and picture show it.
+>
+> </details>
+
+| Learning rate | Each step multiplies the distance by | What happens |
+| --- | --- | --- |
+| 0.1 | 0.8 | smooth, steady approach |
+| 0.5 | 0 | lands on 5 in one step (a lucky case) |
+| 1.0 | -1 | bounces forever between 0 and 10 |
+| 1.1 | -1.2 | overshoots further each time and **diverges** |
+
+![Four panels of gradient descent on the same bowl: learning rate 0.1 approaches smoothly, 0.5 jumps straight to the bottom, 1.0 bounces between 0 and 10, and 1.1 flies further out each step](figures/ch5_learning_rates.svg)
+
+This is why learning rate is the first knob people tune. Too small wastes time; too large makes training blow up. Real loss landscapes are also bumpier than a clean bowl, with flat plateaus and several valleys. Remarkably, simple downhill stepping still works very well for neural networks, though nobody has a fully satisfying proof of why.
+
+Now for real data. To fit a line, we need the slopes of the loss with respect to `w` and `b`. Where do they come from?
 
 ## Where do the code's gradient formulas come from?
 
@@ -101,7 +105,17 @@ The outer function is "square it" (derivative `2e`), and the inner function is t
 
 No magic, just the chain rule.
 
+We have everything we need. Let's fit a line.
+
 ## Build it: fit a line to data
+
+> 🤔 **Pause and predict.** The data in the code below is generated from `y = 3x + 1` plus noise. Where do you expect `w` and `b` to end up after training?
+>
+> <details markdown="1"><summary>Answer</summary>
+>
+> Close to `w = 3` and `b = 1`, but not exactly: the noise nudges them slightly. Run the code to check.
+>
+> </details>
 
 We will teach a machine to find `y = w·x + b` from noisy points. The loss is the average squared error.
 
@@ -131,9 +145,16 @@ You should see the loss fall and `w`, `b` land close to 3 and 1. **That is machi
 
 ![Noisy data points with the fitted line at steps 0, 5, 20 and 199: it starts flat and swings up into place at w = 3, b = 1](figures/ch5_line_fit.svg)
 
-> 📜 **History.** Fitting a line by minimising squared error, the **method of least squares**, was published by Adrien-Marie Legendre in 1805. Carl Friedrich Gauss said he had used it since 1795, and used it in 1801 to predict where the lost dwarf planet Ceres would reappear from a handful of telescope sightings. It did reappear where he said. The same idea runs in the loop above, two centuries later.
+<details markdown="1">
+<summary>📜 <b>History:</b> how least squares found a lost dwarf planet</summary>
+
+Fitting a line by minimising squared error, the **method of least squares**, was published by Adrien-Marie Legendre in 1805. Carl Friedrich Gauss said he had used it since 1795, and used it in 1801 to predict where the lost dwarf planet Ceres would reappear from a handful of telescope sightings. It did reappear where he said. The same idea runs in the loop above, two centuries later.
+
+</details>
 
 **Try this:** set `lr = 1.5` and watch it blow up. Then set `lr = 0.001` and see how slowly it learns.
+
+That loop is all of machine learning in miniature. Real training adds a few refinements on top.
 
 ## Beyond the basic loop
 
@@ -160,14 +181,51 @@ flowchart TD
     O --> Z["Zeroth-order: no derivatives at all<br/>random search, genetic algorithms<br/>→ for when there is no gradient, e.g. choosing a network's architecture"]
 ```
 
+One worry remains. Our line-fitting loss was a perfect bowl with one bottom. What if the landscape has many valleys?
+
+## Bumpy landscapes: local minima, saddles and convexity
+
+The bowl `(w - 5)²` has one bottom, and every downhill path leads there. Real loss landscapes are messier, and a few words describe what can go wrong:
+
+![Left: a bumpy one-dimensional loss curve with a global minimum, a local maximum, and a higher local minimum. Right: a 3D saddle surface that curves up in one direction and down in the other, with the flat saddle point marked](figures/ch5_minima.svg)
+
+- **Global minimum:** the lowest point anywhere. This is what we want.
+- **Local minimum:** the bottom of a valley that is not the lowest one. Downhill steps get stuck there, because every direction nearby goes up.
+- **Saddle point:** flat (gradient zero) but not a minimum. It curves up in some directions and down in others, like a horse's saddle or a mountain pass.
+- **Plateau:** a wide, nearly flat region where the gradient is tiny, so progress crawls.
+
+A landscape with only one valley is called **convex**: bowl-shaped everywhere. The test is that a straight line drawn between any two points on the curve never dips below it. Convex problems are the friendly ones: there is a single valley, and gradient descent with a small enough step always reaches its bottom. Fitting a line with squared error, as in the code above, is convex.
+
+Neural networks are **not** convex. Even a simple symmetry shows this: swap two hidden units, with all their weights, and the network computes exactly the same function. So every good solution has many identical twins sitting in separate valleys. Why does downhill stepping still work so well? Three reasons, partly understood and partly still researched:
+
+1. **In high dimensions, true local minima are rare.** To be a minimum, the ground must curve upwards in *every* direction. As a rough picture, if each of 10 directions were equally likely to curve up or down, the chance that all 10 curve up would be `0.5¹⁰ ≈ 0.001`. With millions of parameters, almost every flat spot is a saddle with some way down, a point made by Yann Dauphin and colleagues in 2014.
+2. **Noise helps.** Near a saddle the gradient is small, so progress slows. But the randomness of mini-batches (above) and the inertia of momentum jiggle the parameters off the saddle and onto the downward slope.
+3. **The valleys that are found tend to be about equally good.** For large networks, different random starting points usually end in different places with very similar loss.
+
+Practitioners help things along with random starting weights, mini-batch noise, momentum, and **learning-rate schedules**: start with big steps to explore, then shrink them to settle into a valley.
+
+## Back to the question
+
+We asked whether a model could find `w` and `b` on its own. It did. Starting from zero, it reached `w ≈ 3.00` and `b ≈ 0.99` in 200 steps, and nobody told it the answer. It only felt the slope of its own loss and stepped the other way, again and again.
+
+That is what **learning** means in machine learning: forward pass, loss, gradient, small step, repeat. Everything else, from momentum and Adam to billion-parameter networks, is refinement and scale.
+
 ## Check yourself
 
-1. For `L(w) = (w - 4)²` starting at `w = 0` with `lr = 0.25`, what is `w` after two steps? *Answer: the gradient is `2(w - 4)`. Step 1: `-8`, so `w = 0 + 2 = 2`. Step 2: `-4`, so `w = 2 + 1 = 3`.*
-2. Why do we subtract the gradient rather than add it? *Answer: the gradient points uphill, and we want to reduce the loss.*
-3. What does a gradient of exactly zero do to an update? *Answer: nothing moves. We are on flat ground, which could be a minimum (good), a maximum or a saddle.*
-4. What goes wrong if the learning rate is too large? *Answer: steps overshoot the valley, the loss can grow instead of shrinking, and training diverges.*
-5. Why does momentum help in a long, narrow valley? *Answer: the steep side-to-side gradients keep flipping sign and average out, while the gentle along-the-valley gradient keeps the same sign and accumulates speed.*
-6. Why is fitting a line with squared error easier to optimise than training a neural network? *Answer: its loss is convex, a single bowl, so every downhill path leads to the one global minimum. A network's loss has many valleys and saddle points.*
+Try each question on paper before opening the answer.
+
+1. For `L(w) = (w - 4)²` starting at `w = 0` with `lr = 0.25`, what is `w` after two steps?
+    <details markdown="1"><summary>Answer</summary>the gradient is `2(w - 4)`. Step 1: `-8`, so `w = 0 + 2 = 2`. Step 2: `-4`, so `w = 2 + 1 = 3`.</details>
+2. Why do we subtract the gradient rather than add it?
+    <details markdown="1"><summary>Answer</summary>the gradient points uphill, and we want to reduce the loss.</details>
+3. What does a gradient of exactly zero do to an update?
+    <details markdown="1"><summary>Answer</summary>nothing moves. We are on flat ground, which could be a minimum (good), a maximum or a saddle.</details>
+4. What goes wrong if the learning rate is too large?
+    <details markdown="1"><summary>Answer</summary>steps overshoot the valley, the loss can grow instead of shrinking, and training diverges.</details>
+5. Why does momentum help in a long, narrow valley?
+    <details markdown="1"><summary>Answer</summary>the steep side-to-side gradients keep flipping sign and average out, while the gentle along-the-valley gradient keeps the same sign and accumulates speed.</details>
+6. Why is fitting a line with squared error easier to optimise than training a neural network?
+    <details markdown="1"><summary>Answer</summary>its loss is convex, a single bowl, so every downhill path leads to the one global minimum. A network's loss has many valleys and saddle points.</details>
 
 ## Chapter 5 in one breath
 
@@ -175,4 +233,4 @@ Learning means repeatedly stepping each parameter against its gradient. The lear
 
 ---
 
-**Next:** [Chapter 6: Reasoning With Doubt](06-probability.md): a change of scene: how to think clearly when you are not sure.
+**Next:** [Chapter 6: Reasoning With Doubt](06-probability.md). Our models so far output one confident number. But a language model never knows for sure: "mat" is likely, "sofa" is possible, "moon" is unlikely. How do you reason, and compute, with *probably*?

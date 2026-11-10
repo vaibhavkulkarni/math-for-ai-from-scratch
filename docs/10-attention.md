@@ -1,12 +1,27 @@
-# Chapter 10: Attention in Two Pages (The Math of Transformers)
+# Chapter 10: Paying Attention (The Math of Transformers)
+
+> 🧭 **The question.** *"The animal didn't cross the street because it was tired."* What does "it" mean? You knew instantly: the animal. Now change "tired" to "wide", and "it" becomes the street.
+>
+> To finish *"The cat sat on the …"*, a model has to do the same thing: look back and decide which earlier words matter. How can plain arithmetic decide that? And once it can, how does a model write a whole answer?
+
+*Where this fits in the book:* this is the last piece. By the end of the chapter we will finish the book's sentence, step by step.
 
 **The big idea:** attention lets each word look at every other word and decide *which ones matter*. It is dot products (Ch. 1), matrices (Ch. 2) and probabilities (Ch. 6 and 8), nothing new.
 
-> 📜 **History.** Attention was introduced in 2014 by Dzmitry Bahdanau, Kyunghyun Cho and Yoshua Bengio to help translation networks look back at the relevant words of the source sentence, instead of squeezing a whole sentence into one vector. In 2017 a team of eight Google researchers (Ashish Vaswani and colleagues) published *Attention Is All You Need*, which dropped the older recurrent machinery entirely and built a network from attention alone: the **Transformer**. Its layers could process every word in parallel, which suited graphics chips perfectly. GPT-1 followed in 2018, and ChatGPT, launched in November 2022, made transformer language models a household technology. The "T" in GPT stands for Transformer.
+<details markdown="1">
+<summary>📜 <b>History:</b> from translation to ChatGPT, where attention came from</summary>
+
+Attention was introduced in 2014 by Dzmitry Bahdanau, Kyunghyun Cho and Yoshua Bengio to help translation networks look back at the relevant words of the source sentence, instead of squeezing a whole sentence into one vector. In 2017 a team of eight Google researchers (Ashish Vaswani and colleagues) published *Attention Is All You Need*, which dropped the older recurrent machinery entirely and built a network from attention alone: the **Transformer**. Its layers could process every word in parallel, which suited graphics chips perfectly. GPT-1 followed in 2018, and ChatGPT, launched in November 2022, made transformer language models a household technology. The "T" in GPT stands for Transformer.
+
+</details>
 
 ## The intuition
 
-In the sentence "The animal didn't cross the street because it was tired", what does "it" refer to? You look back at the other words and weigh them: "animal" matters a lot, "street" less. Attention does exactly this with numbers. (Change "tired" to "wide" and "it" now means the street. The right weighting depends on the whole sentence, which is why it must be computed, not looked up.)
+Think about how you answered the opening question. You looked back at the other words and weighed them: "animal" mattered a lot, "street" a little, "the" hardly at all. And the right weighting depended on the whole sentence ("tired" versus "wide"), so it has to be worked out fresh every time, not looked up in a table.
+
+Attention does exactly this with numbers. Every word gives every other word a score, and the scores decide whose information to borrow.
+
+To score other words and borrow from them, each word needs to play three parts at once.
 
 ## The three roles
 
@@ -18,9 +33,13 @@ Each word is a vector (an embedding, from Chapter 1). Three matrices turn it int
 
 > 💡 **A library analogy.** The query is your search phrase. Each book's key is the label on its spine. You compare your phrase with every spine (dot products), then instead of taking just one book you take a *blend* of all their contents (the values), weighted by how well each spine matched.
 
+Where do these three vectors come from?
+
 ## Where the three vectors come from
 
 A word starts as one embedding vector `x` (Chapter 1). Three learned matrices turn that **same** vector into three different ones: `q = x·Wq`, `k = x·Wk`, `v = x·Wv`. Why three? Because one word plays three different roles at once. As a *seeker* it asks a question (query), as a *candidate* it advertises what it is (key), and if chosen it *contributes* content (value). Separating the roles lets the model learn much more flexible relationships than one vector could. The numbers inside `Wq`, `Wk` and `Wv` are parameters, learned by the Chapter 5 loop like any others.
+
+Enough description. Let's compute attention by hand, small enough to check every number.
 
 ## A tiny example by hand
 
@@ -32,6 +51,14 @@ Let the sentence be "the cat sat" and let us compute what **"sat"** pays attenti
 | cat | `[2, 0]` | `[0, 2]` | 2 | 1.41 | 0.58 |
 | sat | `[1, 1]` | `[1, 1]` | 1 | 0.71 | 0.28 |
 
+> 🤔 **Pause and predict.** Look at the keys in the table. The query of "sat" is `[1, 0]`. Which word's key lines up with it best, so that "sat" will pay it the most attention?
+>
+> <details markdown="1"><summary>Answer</summary>
+>
+> "cat", whose key `[2, 0]` points the same way as the query, giving the biggest dot product (2).
+>
+> </details>
+
 The scaled scores `[0, 1.41, 0.71]` become `e^0 = 1`, `e^1.41 = 4.11`, `e^0.71 = 2.03`, summing to `7.14`, so the weights are `[0.14, 0.58, 0.28]`. The output for "sat" is the weighted mix of the values:
 
 `0.14×[1, 0] + 0.58×[0, 2] + 0.28×[1, 1] ≈ [0.42, 1.44]`
@@ -41,6 +68,8 @@ The word "sat" has gathered most of its new representation from "cat", because t
 ![Left: bar chart of the attention weights from "sat": 0.14 to "the", 0.58 to "cat", 0.28 to "sat". Right: a 6 by 6 causal attention matrix for "The cat sat on the mat" in which every row sums to 1 and the cells above the diagonal are masked](figures/ch10_attention.svg)
 
 **Why divide by √d?** The dot product of two vectors with `d` entries tends to grow in size with `d`. Big scores make softmax nearly one-hot (one weight almost 1, the rest almost 0), and in that regime gradients are tiny, so learning stalls. Dividing by `√d` keeps the scores in a comfortable range.
+
+That example used four steps. Here they are in general, and then in one famous line.
 
 ## The four steps
 
@@ -72,6 +101,8 @@ flowchart LR
 
 A full transformer stacks many of these (with several "heads" in parallel, plus ordinary layers from Chapter 2), all trained with the gradient-descent loop from Chapter 5 on the cross-entropy loss from Chapter 8.
 
+And in code: a full attention head in about 15 lines.
+
 ## Build it: a self-attention head
 
 ```python
@@ -101,6 +132,8 @@ Each row of `weights` says how much one word attends to every word. With random 
 
 **Try this:** make word 0 and word 1 identical vectors and check whether they attend to each other strongly.
 
+One attention head is the heart of a transformer. A real model adds a few more parts, none of which need new math.
+
 ## What a full transformer adds
 
 Our single head is the heart of it, but a real model adds a few more ingredients, none needing new math:
@@ -127,6 +160,8 @@ flowchart TD
 
 **What about tokens?** Language models don't actually see words. They see **tokens**: common words, pieces of rarer words (`"un" + "believ" + "able"`), and punctuation, typically from a vocabulary of 50,000 to 200,000 entries. Each token ID is looked up in a big learned table to get its embedding vector. "Next word" in this book really means "next token".
 
+We can now produce a probability for the next token. But a chatbot writes whole answers. How?
+
 ## How a language model writes: one token at a time
 
 Everything so far produces one thing: a probability for every possible **next** token. So how does a chatbot write a whole answer? With a simple loop:
@@ -145,6 +180,14 @@ This is called **autoregressive generation**: each new token is predicted from e
 The interesting step is **"pick one token"**. Take the probabilities from Chapter 8, `mat 0.61, sofa 0.22, dog 0.14, moon 0.03`:
 
 ![Four bar charts of the chance each word gets picked: plain sampling keeps the model's probabilities; greedy always picks mat; top-k with k = 2 keeps mat 0.73 and sofa 0.27; top-p with p = 0.9 keeps mat 0.63, sofa 0.23 and dog 0.14, dropping moon](figures/ch10_sampling.svg)
+
+> 🤔 **Pause and predict.** With greedy decoding, what does the model write after *"The cat sat on the"*? And does it write the same thing every time?
+>
+> <details markdown="1"><summary>Answer</summary>
+>
+> "mat", the most likely token, and yes: greedy always picks the top choice, so the output never changes.
+>
+> </details>
 
 - **Greedy:** always take the most likely token. The output is the same every time, but it is often bland and can get stuck repeating itself.
 - **Plain sampling:** roll a weighted die using the probabilities. The output is varied, but rare bad tokens slip through. Over a long answer they add up: with a 3% chance of junk at each step, the chance of 100 tokens with no junk at all is only `0.97¹⁰⁰ ≈ 5%`.
@@ -178,6 +221,8 @@ for settings in [{}, {"top_k": 2}, {"top_p": 0.9}, {"temperature": 0.5}]:
 
 Each line shows how often each word was picked in 1,000 draws. Notice that "moon" vanishes under top-k and top-p, and becomes rare at low temperature.
 
+That completes the journey. Here is every idea in the book, and where it lives inside a language model.
+
 ## The whole picture, in one table
 
 | Idea from this book | Where it appears in training a language model |
@@ -191,14 +236,28 @@ Each line shows how often each word was picked in 1,000 draws. Notice that "moon
 
 That is the entire conceptual stack. Everything else is engineering at scale.
 
+## Back to the question
+
+We asked how plain arithmetic could decide which words matter. **Attention** does it with tools from every chapter. Each word's query is compared with every key by a dot product (Chapter 1). The scores are scaled and turned into weights by softmax (Chapter 8). The weights blend the value vectors, which come from learned matrices (Chapter 2). Those matrices are tuned by gradient descent (Chapter 5), using gradients from backpropagation (Chapter 4), to lower a cross-entropy loss (Chapter 8).
+
+And now the book's question has its full answer. A language model reads *"The cat sat on the"*. Every token becomes an embedding. Dozens of transformer blocks let each word gather information from the words before it. The final layer turns the last position into a score for every possible token, softmax turns the scores into probabilities (**mat 61%, sofa 22%, dog 14%, moon 3%**), and the sampler picks one: **"mat"**. Every step of that is math you now understand.
+
 ## Check yourself
 
-1. Why do we divide attention scores by `√d`? *Answer: to keep scores from growing with the dimension, which would push softmax towards one-hot and starve learning of gradient.*
-2. In the example, why does "sat" weigh "cat" most? *Answer: the key of "cat" has the largest dot product with the query of "sat".*
-3. What do the weights in one row of the attention matrix add up to? *Answer: 1, since they come from softmax.*
-4. What does masking prevent? *Answer: a word seeing future words, which would let the model cheat when predicting the next word.*
-5. Why can the same prompt produce different answers? *Answer: the next token is usually sampled from the probabilities rather than always taking the top one. Greedy decoding (temperature 0) removes most of that randomness.*
-6. With probabilities `[0.5, 0.3, 0.15, 0.05]`, which tokens does top-p with `p = 0.8` keep? *Answer: the first two. `0.5 + 0.3 = 0.8` reaches the threshold, so the set stops there, and they are rescaled to `0.625` and `0.375`.*
+Try each question on paper before opening the answer.
+
+1. Why do we divide attention scores by `√d`?
+    <details markdown="1"><summary>Answer</summary>to keep scores from growing with the dimension, which would push softmax towards one-hot and starve learning of gradient.</details>
+2. In the example, why does "sat" weigh "cat" most?
+    <details markdown="1"><summary>Answer</summary>the key of "cat" has the largest dot product with the query of "sat".</details>
+3. What do the weights in one row of the attention matrix add up to?
+    <details markdown="1"><summary>Answer</summary>1, since they come from softmax.</details>
+4. What does masking prevent?
+    <details markdown="1"><summary>Answer</summary>a word seeing future words, which would let the model cheat when predicting the next word.</details>
+5. Why can the same prompt produce different answers?
+    <details markdown="1"><summary>Answer</summary>the next token is usually sampled from the probabilities rather than always taking the top one. Greedy decoding (temperature 0) removes most of that randomness.</details>
+6. With probabilities `[0.5, 0.3, 0.15, 0.05]`, which tokens does top-p with `p = 0.8` keep?
+    <details markdown="1"><summary>Answer</summary>the first two. `0.5 + 0.3 = 0.8` reaches the threshold, so the set stops there, and they are rescaled to `0.625` and `0.375`.</details>
 
 ## Chapter 10 in one breath
 
@@ -206,4 +265,4 @@ Attention scores every pair of words with dot products, turns the scores into pr
 
 ---
 
-**Next:** [Where to Go Next](next-steps.md): how these ideas branch out into the rest of AI.
+**Next:** [Where to Go Next](next-steps.md). You have climbed the whole hill. From the top, here is where each path leads.

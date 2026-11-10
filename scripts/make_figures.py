@@ -268,6 +268,60 @@ def ch1():
     save(fig, "ch1_dot_signs.svg")
 
 
+
+def ch1_cosine():
+    # ---- Idea 1: arrows of different lengths, same direction, shrink to one spot ----
+    fig, axs = plt.subplots(1, 2, figsize=(10.5, 4.8), gridspec_kw={"width_ratios": [1.15, 1]})
+    ax = axs[0]; axes_through_origin(ax)
+    for v, lab in [((6, 8), "[6, 8]  length 10"), ((3, 4), "[3, 4]  length 5"), ((1.5, 2), "[1.5, 2]  length 2.5")]:
+        arrow(ax, (0, 0), v, BLUE, lw=1.6)
+        ax.text(v[0] + 0.25, v[1] - 0.15, lab, fontsize=9.5)
+    arrow(ax, (0, 0), (5, 1), AQUA, lw=1.6); ax.text(5.1, 1.25, "[5, 1]  length 5.1", fontsize=9.5)
+    ax.set_xlim(-0.5, 9); ax.set_ylim(-0.5, 8.8); ax.set_aspect("equal")
+    ax.set_title("Before: arrows of different lengths", fontsize=10.5)
+    ax = axs[1]; axes_through_origin(ax)
+    t = np.linspace(0, 2 * np.pi, 300)
+    ax.plot(np.cos(t), np.sin(t), color=MUTED, lw=1.2, ls="--")
+    arrow(ax, (0, 0), (0.6, 0.8), BLUE, lw=2.6)
+    ax.scatter([0.6], [0.8], s=80, color=BLUE, zorder=6, edgecolor=SURF, linewidth=2)
+    ax.text(0.68, 0.9, "[0.6, 0.8]\nall three blue arrows\nshrink to this one", fontsize=9.5)
+    uw = np.array([5, 1.0]) / np.hypot(5, 1)
+    arrow(ax, (0, 0), tuple(uw), AQUA, lw=2.6)
+    ax.scatter([uw[0]], [uw[1]], s=80, color=AQUA, zorder=6, edgecolor=SURF, linewidth=2)
+    ax.text(uw[0] + 0.07, uw[1] - 0.22, "[0.98, 0.2]\na different direction,\na different spot", fontsize=9.5)
+    ax.text(-1.25, -1.3, "dashed: the circle of radius 1. Every direction is one spot on it.", fontsize=9, color=INK2)
+    ax.set_xlim(-1.3, 1.9); ax.set_ylim(-1.4, 1.6); ax.set_aspect("equal")
+    ax.set_title("After dividing by length: every arrow has length 1", fontsize=10.5)
+    save(fig, "ch1_unit.svg")
+
+    # ---- Ideas 2 and 3: shadow of an arrow of length one on the floor = cosine = dot product ----
+    angles = [0, 60, 90, 120, 180]
+    fig, axs = plt.subplots(1, 5, figsize=(12, 3.5))
+    for ax, deg in zip(axs, angles):
+        r = np.radians(deg); b = np.array([np.cos(r), np.sin(r)])
+        b = np.where(np.abs(b) < 1e-9, 0, b)
+        ax.axhline(0, color=MUTED, lw=1)
+        tt = np.linspace(0, np.pi, 100); ax.plot(np.cos(tt), np.sin(tt), color=GRID, lw=1.2)
+        arrow(ax, (0, 0), (1, 0), BLUE, lw=2.4)
+        arrow(ax, (0, 0), tuple(b * (0.999 if deg == 0 else 1)), INK2 if deg else AQUA, lw=2)
+        if deg not in (0, 180):
+            ax.plot([b[0], b[0]], [b[1], 0], color=MUTED, ls=":", lw=1.3)
+        col = AQUA if b[0] > 0 else (ORANGE if b[0] < 0 else MUTED)
+        if abs(b[0]) > 1e-9:
+            ax.plot([0, b[0]], [-0.13, -0.13], color=col, lw=6, solid_capstyle="butt")
+        ax.text(0, -0.42, f"shadow = {b[0]:+.1f}".replace("+0.0", "0").replace("-0.0", "0").replace("+", ""),
+                ha="center", fontsize=13, fontweight="bold", color=INK)
+        ax.text(0, -0.74, f"[1, 0] · [{b[0]:.2g}, {b[1]:.2g}] = {b[0]:.2g}".replace("-0,", "0,").replace("[0, -0]", "[0, 0]"),
+                ha="center", fontsize=11, color=INK)
+        ax.set_title(f"{deg}° apart", fontsize=13)
+        ax.text(1.0, 0.07, "a", color=BLUE, fontsize=10); ax.text(b[0] * 1.12, b[1] * 1.12 + (0.06 if deg in (0, 180) else 0), "b", fontsize=10)
+        ax.set_xlim(-1.3, 1.3); ax.set_ylim(-0.9, 1.25); ax.set_aspect("equal"); ax.axis("off")
+    fig.suptitle("a lies flat on the floor, b is an arrow of length one, light shines straight down.\n"
+                 "The shadow of b (coloured bar) is the cosine of the angle, and the dot product computes it.",
+                 color=INK2, fontsize=12)
+    save(fig, "ch1_cosine.svg")
+
+
 # ============================ Chapter 2 ============================
 def ch2():
     tri = np.array([[0, 0], [1, 0], [0.4, 0.8]])
@@ -964,5 +1018,5 @@ if __name__ == "__main__":
     timeline()
     ch0_extra()
     extra_topics()
-    for fn in (ch0, ch1, ch2, ch3, ch5, ch7, ch8, ch9, ch10):
+    for fn in (ch1_cosine, ch0, ch1, ch2, ch3, ch5, ch7, ch8, ch9, ch10):
         fn()

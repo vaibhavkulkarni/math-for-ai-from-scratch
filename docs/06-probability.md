@@ -1,14 +1,27 @@
 # Chapter 6: Reasoning With Doubt (Probability and Bayes)
 
+> 🧭 **The question.** A test for a rare disease is 99% accurate. You test positive. How worried should you be?
+>
+> Most people, and many doctors, say "99% worried". The real answer is about 9%. By the end of this chapter you will see exactly why, and how the same reasoning lets machines learn from evidence.
+
+*Where this fits in the book:* a language model's answer is not a single word but a list of probabilities: "mat" 61%, "sofa" 22%, "dog" 14%. This chapter is how to think in those terms.
+
 **The big idea:** probability is a number between 0 and 1 for how likely something is, and Bayes' rule tells you how to *update* that number when you see evidence.
 
-> 📜 **History.** Probability theory began with a gambling question. In 1654 the Chevalier de Méré asked Blaise Pascal how to split the stakes fairly when a game of dice is interrupted. Pascal and Pierre de Fermat worked out the answer in a famous exchange of letters, and invented the mathematics of chance along the way. Gambling, insurance and astronomy kept the subject growing for the next two centuries.
+<details markdown="1">
+<summary>📜 <b>History:</b> probability was born from a gambling dispute</summary>
+
+Probability theory began with a gambling question. In 1654 the Chevalier de Méré asked Blaise Pascal how to split the stakes fairly when a game of dice is interrupted. Pascal and Pierre de Fermat worked out the answer in a famous exchange of letters, and invented the mathematics of chance along the way. Gambling, insurance and astronomy kept the subject growing for the next two centuries.
+
+</details>
 
 ## The basics
 
 - `P(rain) = 0.3` means it rains on about 3 of 10 days like this.
 - `P(A and B)`: both happen. If they are independent, multiply: `0.5 × 0.5 = 0.25` for two heads in a row.
 - `P(A | B)`, read "A given B": the chance of A once you know B happened.
+
+Those three lines are the vocabulary. Here are the rules, each one checkable with a die or a deck of cards.
 
 ## The rules of probability, with dice and cards
 
@@ -27,6 +40,14 @@ $$
 P(A \mid B) = \frac{P(A \text{ and } B)}{P(B)}
 $$
 
+> 🤔 **Pause and predict.** You roll a die and are told the result is even. What is the chance it is a 6?
+>
+> <details markdown="1"><summary>Answer</summary>
+>
+> 1/3. Only three faces are even (2, 4, 6), and one of them is a 6. The formula gives the same answer, below.
+>
+> </details>
+
 Example: you roll a die and are told the result is even. What is the chance it is a 6? Among the three even faces (2, 4, 6), one is a 6. By the formula: `P(6 and even) = 1/6` and `P(even) = 3/6`, so `P(6 | even) = (1/6) / (3/6) = 1/3`. New information shrinks the world of possibilities, and the probabilities re-adjust.
 
 One more idea you will meet again and again is the **expected value**, the average outcome weighted by how likely each is:
@@ -36,6 +57,8 @@ $$
 $$
 
 For a die: `(1 + 2 + 3 + 4 + 5 + 6) / 6 = 3.5`. You cannot roll a 3.5, but over many rolls the average heads there. A model's loss is an expected value: the average mistake over the data.
+
+Conditional probability is where intuition goes wrong most often. Here is the classic trap, the question this chapter opened with.
 
 ## Bayes' rule with a story
 
@@ -65,7 +88,14 @@ So the chance is `99 / 1,098 ≈ 9%`. Surprising, and it is the single most usef
 
 Bayes' rule writes it down: `P(A | B) = P(B | A) × P(A) / P(B)`. Start with a prior belief, multiply by how well the evidence fits, and you get an updated belief.
 
-> 📜 **History.** Thomas Bayes, an English minister and amateur mathematician, worked out the rule in the 1740s and 1750s but never published it. After his death his friend Richard Price found the manuscript and published it in 1763 as *An Essay towards solving a Problem in the Doctrine of Chances*. Pierre-Simon Laplace independently discovered a more general form in 1774, and he was the one who turned it into a working tool for science. For much of the 20th century "Bayesian" reasoning was controversial among statisticians. Today it runs spam filters, medical diagnosis and robot navigation.
+<details markdown="1">
+<summary>📜 <b>History:</b> the minister who never published his rule</summary>
+
+Thomas Bayes, an English minister and amateur mathematician, worked out the rule in the 1740s and 1750s but never published it. After his death his friend Richard Price found the manuscript and published it in 1763 as *An Essay towards solving a Problem in the Doctrine of Chances*. Pierre-Simon Laplace independently discovered a more general form in 1774, and he was the one who turned it into a working tool for science. For much of the 20th century "Bayesian" reasoning was controversial among statisticians. Today it runs spam filters, medical diagnosis and robot navigation.
+
+</details>
+
+Counting people works. But where does the general rule come from, and what are its pieces called?
 
 ## Where Bayes' rule comes from
 
@@ -96,9 +126,13 @@ flowchart LR
 
 > 💡 **Bayes in the sky.** The **Kalman filter** (Rudolf Kálmán, 1960) is Bayes' rule run continuously: predict where an aircraft is, take a noisy sensor reading, blend the two according to how much you trust each, repeat many times a second. It helped navigate the Apollo missions to the Moon, and it still runs inside autopilots, GPS receivers and self-driving cars.
 
+That is reasoning under doubt. Where does it show up in AI?
+
 ## Why AI cares
 
 A classifier's output is a probability: "87% cat, 13% dog". Language models output a probability for every possible next word. Training means making the model assign high probability to what really happened.
+
+Bayes' rule alone is enough to build a working classifier. Let's build one.
 
 ## Build it: a tiny spam filter
 
@@ -132,6 +166,8 @@ It should print `True False`. We used logs because multiplying many small probab
 
 **Try this:** add three more training messages of each kind and test a message that mixes both vocabularies.
 
+The code has a few odd-looking details. Here is what they do.
+
 ## Reading the spam filter
 
 The filter above is a **naive Bayes classifier**, one of the oldest tricks in machine learning. The idea:
@@ -145,7 +181,14 @@ Two practical details explain the odd-looking code:
 - **Logs:** multiplying 30 probabilities of about 0.01 already gives `10⁻⁶⁰`. A long email with 200 words would give `10⁻⁴⁰⁰`, which is smaller than the tiniest number a standard computer float can hold (about `10⁻³⁰⁸`), so it **underflows** to exactly zero. Adding logs instead gives a manageable number (`200 × ln 0.01 ≈ -921`), thanks to `ln(a×b) = ln(a) + ln(b)` from Chapter 0.
 - **Add-one smoothing:** if a word never appeared in spam during training, its probability would be 0, and one zero wipes out the whole product (and `ln(0)` is minus infinity). Adding 1 to every count means nothing is ever impossible. (This trick is due to Laplace, who used it to estimate the chance that the sun will rise tomorrow.)
 
-> 📜 **History.** Naive Bayes spam filters were proposed by Mehran Sahami and colleagues in 1998 and popularised by Paul Graham's 2002 essay *A Plan for Spam*. They cut spam so effectively that spammers had to change tactics. The same few lines of probability are still a strong baseline for text classification.
+<details markdown="1">
+<summary>📜 <b>History:</b> how naive Bayes beat spam</summary>
+
+Naive Bayes spam filters were proposed by Mehran Sahami and colleagues in 1998 and popularised by Paul Graham's 2002 essay *A Plan for Spam*. They cut spam so effectively that spammers had to change tactics. The same few lines of probability are still a strong baseline for text classification.
+
+</details>
+
+We have built a classifier. How would we know whether it is any good? "Percent correct" turns out to be a trap.
 
 ## Judging a classifier: the confusion matrix, precision and recall
 
@@ -169,6 +212,8 @@ To combine the two into one number, people use the **F1 score**, `2 × P × R / 
 - **Spam filter: favour precision.** Losing an important email to the spam folder is worse than seeing an occasional spam message.
 - **Cancer screening: favour recall.** Missing a case is far worse than a false alarm, which a second, more precise test can then check. That is the "second positive test" from the Bayes section above.
 
+One last idea, and it leads straight to language models.
+
 ## Probability through time: Markov chains
 
 So far each event stood alone. Often what happens next depends on what is happening now. A **Markov chain** is the simplest model of this: the next state depends **only on the current state**, not on the full history. Here is a toy weather model:
@@ -188,19 +233,47 @@ $$
 T = \begin{bmatrix} 0.8 & 0.2 \\ 0.5 & 0.5 \end{bmatrix}
 $$
 
-and Chapter 2 does the rest. If today's probabilities are the row vector `[1, 0]` (certainly sunny), tomorrow's are `[1, 0] @ T = [0.8, 0.2]`, the day after `[0.74, 0.26]`, and so on. Run it for a few weeks and it settles at about `[0.71, 0.29]` whatever you start from: in the long run it is sunny about 5 days in 7.
+and Chapter 2's matrix multiplication does the rest. If today's probabilities are the row vector `[1, 0]` (certainly sunny), tomorrow's are `[1, 0] @ T = [0.8, 0.2]`, the day after `[0.74, 0.26]`, and so on. > 🤔 **Pause and predict.** Today is sunny. What is the chance it is sunny both tomorrow and the day after?
+>
+> <details markdown="1"><summary>Answer</summary>
+>
+> `0.8 × 0.8 = 0.64`. Each day only depends on the day before, so you multiply.
+>
+> </details>
 
-> 📜 **From Pushkin to ChatGPT.** Andrey Markov introduced these chains in 1906. In 1913 he applied them to the first 20,000 letters of Pushkin's poem *Eugene Onegin*, counting how often a vowel follows a consonant. That was arguably the first statistical language model. In 1948 Claude Shannon generated surprisingly English-looking gibberish by picking each word based on the one before it. A modern language model is the same idea with a vastly better memory: instead of looking only at the current word, it uses attention (Chapter 10) to look at thousands of previous words. **Markov decision processes**, chains where an agent's choices affect the next state and earn rewards, are the foundation of reinforcement learning.
+Run it for a few weeks and it settles at about `[0.71, 0.29]` whatever you start from: in the long run it is sunny about 5 days in 7.
+
+<details markdown="1">
+<summary>📜 <b>History:</b> from Pushkin's poetry to ChatGPT</summary>
+
+Andrey Markov introduced these chains in 1906. In 1913 he applied them to the first 20,000 letters of Pushkin's poem *Eugene Onegin*, counting how often a vowel follows a consonant. That was arguably the first statistical language model. In 1948 Claude Shannon generated surprisingly English-looking gibberish by picking each word based on the one before it. A modern language model is the same idea with a vastly better memory: instead of looking only at the current word, it uses attention (Chapter 10) to look at thousands of previous words. **Markov decision processes**, chains where an agent's choices affect the next state and earn rewards, are the foundation of reinforcement learning.
+
+</details>
+
+## Back to the question
+
+We asked how worried to be after a positive test for a rare disease. About **9%**, not 99%. The disease is so rare that the false alarms from the huge healthy group swamp the true positives from the tiny sick group. **Bayes' rule** makes that precise: start with the prior, weigh the evidence, and get the posterior. That posterior, 9%, is also the test's **precision**. And a second positive test, starting from 9% as the new prior, lifts it to 91%: evidence accumulates.
+
+A language model works in exactly this currency. Its output is a probability for every possible next word, and training pushes those probabilities towards what really happened.
 
 ## Check yourself
 
-1. What is the probability of two heads in a row with a fair coin? *Answer: `0.5 × 0.5 = 0.25`.*
-2. A bag holds 3 red and 2 blue marbles. You draw two without replacement. What is the chance both are red? *Answer: `3/5 × 2/4 = 6/20 = 0.3`.*
-3. A game pays £10 on heads and £0 on tails. What is the expected payout? *Answer: `0.5 × 10 + 0.5 × 0 = £5`.*
-4. Why does a positive result for a rare disease usually not mean you have it? *Answer: the healthy group is so much larger that its false positives outnumber the true positives from the small sick group.*
-5. A spam filter flags 60 emails. 40 of them are really spam, and the inbox contained 50 spam emails in total. What are its precision and recall? *Answer: precision `40 / 60 ≈ 0.67` (a third of the flags are false alarms); recall `40 / 50 = 0.8` (it found 80% of the spam).*
-6. Why is accuracy a poor score for detecting a rare disease? *Answer: a model that always says "healthy" scores very high accuracy while finding no sick people at all.*
-7. In the weather chain, today is rainy. What is the chance it is sunny the day after tomorrow? *Answer: tomorrow is `[0.5, 0.5]`; then `0.5×0.8 + 0.5×0.5 = 0.65`.*
+Try each question on paper before opening the answer.
+
+1. What is the probability of two heads in a row with a fair coin?
+    <details markdown="1"><summary>Answer</summary>`0.5 × 0.5 = 0.25`.</details>
+2. A bag holds 3 red and 2 blue marbles. You draw two without replacement. What is the chance both are red?
+    <details markdown="1"><summary>Answer</summary>`3/5 × 2/4 = 6/20 = 0.3`.</details>
+3. A game pays £10 on heads and £0 on tails. What is the expected payout?
+    <details markdown="1"><summary>Answer</summary>`0.5 × 10 + 0.5 × 0 = £5`.</details>
+4. Why does a positive result for a rare disease usually not mean you have it?
+    <details markdown="1"><summary>Answer</summary>the healthy group is so much larger that its false positives outnumber the true positives from the small sick group.</details>
+5. A spam filter flags 60 emails. 40 of them are really spam, and the inbox contained 50 spam emails in total. What are its precision and recall?
+    <details markdown="1"><summary>Answer</summary>precision `40 / 60 ≈ 0.67` (a third of the flags are false alarms); recall `40 / 50 = 0.8` (it found 80% of the spam).</details>
+6. Why is accuracy a poor score for detecting a rare disease?
+    <details markdown="1"><summary>Answer</summary>a model that always says "healthy" scores very high accuracy while finding no sick people at all.</details>
+7. In the weather chain, today is rainy. What is the chance it is sunny the day after tomorrow?
+    <details markdown="1"><summary>Answer</summary>tomorrow is `[0.5, 0.5]`; then `0.5×0.8 + 0.5×0.5 = 0.65`.</details>
 
 ## Chapter 6 in one breath
 
@@ -208,4 +281,4 @@ Probability measures belief. Bayes' rule updates it with evidence, and rare even
 
 ---
 
-**Next:** [Chapter 7: The Shape of Randomness](07-distributions.md): why the bell curve turns up everywhere, from noise in data to a network's starting weights.
+**Next:** [Chapter 7: The Shape of Randomness](07-distributions.md). A die has six neat outcomes. But how tall will the next person you meet be? How much noise is in a measurement? And why does one bell-shaped curve keep turning up everywhere, even in a neural network's starting weights?

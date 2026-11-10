@@ -1,5 +1,13 @@
 # Chapter 0: The Math Toolkit (Read This First)
 
+> 🧭 **The question.** Here is a formula you will meet in Chapter 5:
+>
+> `L = (1/n) Σ (ŷᵢ − yᵢ)²`
+>
+> Right now it might look like noise. By the end of this chapter you will be able to read it aloud like a sentence, and work it out by hand.
+
+*Where this fits in the book:* every later chapter is written in this notation. Think of this chapter as learning the alphabet before reading the story.
+
 **The big idea:** every formula in this book is built from about eight small tools. If you meet them one at a time, none of them is scary. Skim anything you already know, and slow down on anything that feels unfamiliar.
 
 Why start here? Most people who "are bad at math" were not bad at ideas. They lost the thread at one missing piece of notation and never got it back. This chapter fills in those pieces before they can trip you up.
@@ -17,6 +25,8 @@ Two habits of mathematical writing to get used to:
 - **Multiplication is often invisible.** `3x` means `3 × x`, and `wx` means `w × x`.
 - **Order of operations:** brackets first, then powers, then multiplication and division, then addition and subtraction. So `2 + 3 × 4 = 14`, not 20.
 
+Variables and formulas are the words of mathematics. The most important kind of formula is one that takes something in and gives something back.
+
 ## Functions: machines with an input and an output
 
 A **function** is a machine: one number goes in, one number comes out, and the same input always gives the same output. We write `f(x)`, read "f of x".
@@ -33,6 +43,13 @@ For `f(x) = x²`, feeding in 3 gives `f(3) = 9`, and feeding in -2 gives `f(-2) 
 | `f(x) = 2x + 1` | double it, add one | 7 |
 | `f(x) = x²` | square it | 9 |
 | `f(x) = max(0, x)` | keep positives, replace negatives with 0 (this is ReLU from Chapter 2) | 3 |
+
+Here is why functions matter so much: **an AI model is just a gigantic function.** Input goes in (a picture, a sentence), output comes out (a label, the next word). The numbers inside the function are its *parameters*, and "training" means adjusting them until the function behaves well.
+
+```mermaid
+flowchart LR
+    I["a photo<br/>(millions of pixel numbers)"] --> F["model f<br/>with billions of adjustable<br/>parameters inside"] --> O["'cat': 0.92<br/>'dog': 0.08"]
+```
 
 ### Domain and range: what goes in, what comes out
 
@@ -56,12 +73,8 @@ Most of the mysterious "why is there a tiny number added here?" moments in AI co
 
 > 💡 **What about "relations"?** Textbooks often start with *relations*, any pairing between two sets, and then define a function as a relation where each input has exactly one output. That is the formal foundation, but you will not need the word in this book. "One input in, exactly one output out" is the part that matters.
 
-Here is why functions matter so much: **an AI model is just a gigantic function.** Input goes in (a picture, a sentence), output comes out (a label, the next word). The numbers inside the function are its *parameters*, and "training" means adjusting them until the function behaves well.
 
-```mermaid
-flowchart LR
-    I["a photo<br/>(millions of pixel numbers)"] --> F["model f<br/>with billions of adjustable<br/>parameters inside"] --> O["'cat': 0.92<br/>'dog': 0.08"]
-```
+A model is one function. But big models are built by snapping smaller functions together, like carriages on a train.
 
 ### Composition: machines in a chain
 
@@ -72,6 +85,14 @@ flowchart LR
     X["x = 3"] --> G["g(x) = x + 1"] -->|"4"| F["f(u) = u²"] --> Y["f(g(3)) = 16"]
 ```
 
+> 🤔 **Pause and predict.** With `f(x) = x²` and `g(x) = x + 1`, is `f(g(2))` the same as `g(f(2))`?
+>
+> <details markdown="1"><summary>Answer</summary>
+>
+> No. `f(g(2)) = f(3) = 9`, but `g(f(2)) = g(4) = 5`.
+>
+> </details>
+
 Order matters. `f(g(3)) = (3 + 1)² = 16`, but `g(f(3)) = 3² + 1 = 10`. (Putting on socks then shoes is not the same as shoes then socks.)
 
 This is the single most important idea in Chapter 0 for what comes later:
@@ -79,7 +100,14 @@ This is the single most important idea in Chapter 0 for what comes later:
 - **A deep network is a composition.** Layer 3 of layer 2 of layer 1 of the input: `f₃(f₂(f₁(x)))`.
 - **The chain rule (Chapter 4) is the rule for differentiating compositions.** Backpropagation is just that rule applied to a very long chain.
 
-> 📜 **History.** The idea of a function grew out of 17th-century studies of curves and motion. The notation `f(x)` was introduced by Leonhard Euler in 1734.
+<details markdown="1">
+<summary>📜 <b>History:</b> who first wrote f(x)?</summary>
+
+The idea of a function grew out of 17th-century studies of curves and motion. The notation `f(x)` was introduced by Leonhard Euler in 1734.
+
+</details>
+
+Machines and formulas are hard to feel in your gut. A picture fixes that.
 
 ## Graphs: seeing a function
 
@@ -97,7 +125,14 @@ A straight line has the form `y = mx + b`. Here `m` is the **slope** (how much y
 
 ![The line y = 2x + 1, with the slope shown as rise 2 over run 1 and the intercept at y = 1](figures/ch0_line.svg)
 
-> 📜 **History.** Drawing an equation as a picture is the great idea of René Descartes, published in 1637. Before him, algebra (equations) and geometry (shapes) were separate subjects. Afterwards, every point became a pair of numbers and every equation became a shape. The `x`/`y` axes are still called **Cartesian coordinates** after him, and this one move is the ancestor of "turn everything into vectors" in Chapter 1.
+<details markdown="1">
+<summary>📜 <b>History:</b> how Descartes joined algebra and geometry</summary>
+
+Drawing an equation as a picture is the great idea of René Descartes, published in 1637. Before him, algebra (equations) and geometry (shapes) were separate subjects. Afterwards, every point became a pair of numbers and every equation became a shape. The `x`/`y` axes are still called **Cartesian coordinates** after him, and this one move is the ancestor of "turn everything into vectors" in Chapter 1.
+
+</details>
+
+Two curves turn up in almost every chapter of this book: the exponential, and its mirror image, the logarithm. Exponents first.
 
 ## Exponents: repeated multiplication
 
@@ -109,7 +144,14 @@ A straight line has the form `y = mx + b`. Here `m` is the **slope** (how much y
 
 One special number deserves an introduction: **e ≈ 2.718**. The function `eˣ` (written `exp(x)` in code) is the "natural" growth curve: it grows at a rate equal to its own size. You can ignore why for now. Just remember three facts: `e⁰ = 1`, `eˣ` is **always positive**, and it climbs steeply as `x` grows. It will show up in softmax (Chapter 8) and in the sigmoid squash (Chapter 9).
 
-> 📜 **Where e comes from.** In 1683 Jacob Bernoulli asked a banking question: if 100% yearly interest is paid in ever smaller instalments (monthly, daily, every second), how much does £1 grow to in a year? The answer creeps up towards 2.71828…, a limit rather than infinity. Leonhard Euler named the number `e` in the 1720s and 1730s and showed it is the base for which the curve `eˣ` has a slope equal to its own height.
+<details markdown="1">
+<summary>📜 <b>History:</b> where e comes from, a banking puzzle</summary>
+
+In 1683 Jacob Bernoulli asked a banking question: if 100% yearly interest is paid in ever smaller instalments (monthly, daily, every second), how much does £1 grow to in a year? The answer creeps up towards 2.71828…, a limit rather than infinity. Leonhard Euler named the number `e` in the 1720s and 1730s and showed it is the base for which the curve `eˣ` has a slope equal to its own height.
+
+</details>
+
+Nearly every operation in mathematics has an undo button. For exponents, the undo button is the logarithm.
 
 ## Logarithms: undoing an exponent
 
@@ -121,6 +163,14 @@ In AI, `log` almost always means the **natural log**, written `ln` or `log`, whi
 | --- | --- | --- | --- | --- | --- | --- |
 | ln(x) | -4.61 | -2.30 | -0.69 | 0 | 0.69 | 2.30 |
 
+> 🤔 **Pause and predict.** Is `ln(0.5)` positive or negative?
+>
+> <details markdown="1"><summary>Answer</summary>
+>
+> Negative: about `-0.69`. Any number between 0 and 1 needs a *negative* power of `e` to make it, because `e⁰ = 1` already.
+>
+> </details>
+
 Three facts to carry forward:
 
 1. `ln(1) = 0`.
@@ -130,6 +180,8 @@ Three facts to carry forward:
 The picture to keep: `eˣ` and `ln x` are mirror images across the diagonal line `y = x`, because each one undoes the other.
 
 ![e to the x and ln x drawn as mirror images across the line y = x](figures/ch0_exp_log.svg)
+
+That "undo" relationship between `eˣ` and `ln x` is worth a closer look, because it has a name and a picture of its own.
 
 ### Inverse functions: running a machine backwards
 
@@ -148,9 +200,16 @@ Not every function can be undone. If two different inputs give the same output, 
 
 ![Horizontal line test: a flat line at height 4 hits x squared twice, at -2 and 2, so it has no inverse; a flat line hits e to the x only once, so it can be undone](figures/ch0_inverse.svg)
 
-`x²` sends both `-2` and `2` to `4`, so "undo square" is ambiguous. That is why the table restricts it to `x ≥ 0`. ReLU is even worse: it sends *every* negative number to 0. Information that a function throws away can never be recovered. You will see the same idea again in Chapter 2, where a matrix with determinant 0 squashes space flat and has no inverse.
+`x²` sends both `-2` and `2` to `4`, so "undo square" is ambiguous. That is why the table restricts it to `x ≥ 0`. ReLU is even worse: it sends *every* negative number to 0. Information that a function throws away can never be recovered. You will see the same idea again in Chapter 2½, where a matrix with determinant 0 squashes space flat and has no inverse.
 
-> 📜 **History.** John Napier published logarithms in 1614 to save astronomers from weeks of hand multiplication. With a table of logs, multiplying two huge numbers became looking up two logs, adding them, and looking the result back up. The slide rule, used by engineers for 350 years until pocket calculators arrived, is two log scales sliding against each other. AI uses the very same trick for the same reason: adding logs is safer than multiplying many small numbers.
+<details markdown="1">
+<summary>📜 <b>History:</b> how logarithms saved astronomers weeks of work</summary>
+
+John Napier published logarithms in 1614 to save astronomers from weeks of hand multiplication. With a table of logs, multiplying two huge numbers became looking up two logs, adding them, and looking the result back up. The slide rule, used by engineers for 350 years until pocket calculators arrived, is two log scales sliding against each other. AI uses the very same trick for the same reason: adding logs is safer than multiplying many small numbers.
+
+</details>
+
+AI formulas rarely deal with one number at a time. They add up thousands or millions. Mathematicians have a compact way to write that.
 
 ## Summation: the Σ symbol
 
@@ -172,9 +231,13 @@ The first is the average (add up, divide by how many). The second is the dot pro
 
 > 💡 **Picture Σ as a `for` loop.** `Σᵢ xᵢ` is exactly `total = 0; for x_i in x: total += x_i`. Euler introduced the Σ notation in 1755; programmers reinvented it as the loop.
 
+Σ came with little numbers attached, like `xᵢ`. Those deserve a word of their own.
+
 ## Subscripts and indexing
 
 When we write `x₁, x₂, x₃` the small lowered number just says "which one." So `xᵢ` means "the i-th entry of x." One trap: **mathematicians count from 1, Python counts from 0.** The first entry of a list `x` is `x[0]` in code but `x₁` on paper.
+
+You have now met every piece of notation in this book. Time to put them together.
 
 ## How to read any formula
 
@@ -191,6 +254,8 @@ L = \frac{1}{n}\sum_{i=1}^{n} (\hat{y}_i - y_i)^2
 $$
 
 Symbols: `yᵢ` is the true answer for example i; `ŷᵢ` ("y hat") is the model's guess; `n` is the number of examples. In words: **"for each example, take guess minus truth, square it, add all those up, divide by how many."** Try two examples with truths `[1, 3]` and guesses `[2, 3]`: the errors are `1` and `0`, squares `1` and `0`, sum `1`, divided by 2 gives `L = 0.5`. A formula is just a recipe you can run by hand.
+
+Reading a formula by hand builds understanding. Running it in code lets you experiment. Every recipe in this book becomes a few lines of numpy.
 
 ## Python survival kit
 
@@ -216,15 +281,28 @@ print(a.shape)         # (3,)  a list of 3 numbers
 
 Run it, and check each printed line against what you would calculate by hand.
 
+## Back to the question
+
+Remember the formula from the start? `L = (1/n) Σ (ŷᵢ − yᵢ)²`. You can read it now: "for each example, take the model's guess minus the truth, square it, add them all up, and divide by how many." Σ is a loop. The hat on `ŷ` marks the model's guess. The subscript `i` says which example. And because squares are never negative (their range is 0 or more), the total can only be zero when every guess is perfect.
+
 ## Check yourself
 
-1. If `f(x) = 2x² - 3`, what is `f(-2)`? *Answer: `2 × 4 - 3 = 5`.*
-2. What is `2⁴ / 2²`? *Answer: subtracting exponents gives `2² = 4`.*
-3. What are `ln(1)` and `log₂(32)`? *Answer: `0`, and `5` (since `2⁵ = 32`).*
-4. Evaluate `Σ i²` for i from 1 to 4. *Answer: `1 + 4 + 9 + 16 = 30`.*
-5. With `f(x) = 2x` and `g(x) = x - 1`, what are `f(g(5))` and `g(f(5))`? *Answer: `f(4) = 8` and `g(10) = 9`. Order matters.*
-6. Why does `np.log(0)` cause trouble? *Answer: 0 is outside the domain of `ln`, which only accepts positive numbers. numpy returns minus infinity.*
-7. What is the inverse of `f(x) = 3x + 2`? *Answer: undo the steps in reverse order: subtract 2, then divide by 3, so `f⁻¹(x) = (x - 2) / 3`. Check: `f(1) = 5` and `f⁻¹(5) = 1`.*
+Try each question on paper before opening the answer.
+
+1. If `f(x) = 2x² - 3`, what is `f(-2)`?
+    <details markdown="1"><summary>Answer</summary>`2 × 4 - 3 = 5`.</details>
+2. What is `2⁴ / 2²`?
+    <details markdown="1"><summary>Answer</summary>subtracting exponents gives `2² = 4`.</details>
+3. What are `ln(1)` and `log₂(32)`?
+    <details markdown="1"><summary>Answer</summary>`0`, and `5` (since `2⁵ = 32`).</details>
+4. Evaluate `Σ i²` for i from 1 to 4.
+    <details markdown="1"><summary>Answer</summary>`1 + 4 + 9 + 16 = 30`.</details>
+5. With `f(x) = 2x` and `g(x) = x - 1`, what are `f(g(5))` and `g(f(5))`?
+    <details markdown="1"><summary>Answer</summary>`f(4) = 8` and `g(10) = 9`. Order matters.</details>
+6. Why does `np.log(0)` cause trouble?
+    <details markdown="1"><summary>Answer</summary>0 is outside the domain of `ln`, which only accepts positive numbers. numpy returns minus infinity.</details>
+7. What is the inverse of `f(x) = 3x + 2`?
+    <details markdown="1"><summary>Answer</summary>undo the steps in reverse order: subtract 2, then divide by 3, so `f⁻¹(x) = (x - 2) / 3`. Check: `f(1) = 5` and `f⁻¹(5) = 1`.</details>
 
 ## Chapter 0 in one breath
 
@@ -232,4 +310,4 @@ A function is a machine from numbers to numbers, with a domain of allowed inputs
 
 ---
 
-**Next:** [Chapter 1: Numbers With Direction](01-vectors.md): turning movies, words and pictures into arrows, so that similarity becomes geometry.
+**Next:** [Chapter 1: Numbers With Direction](01-vectors.md). You can read the language now. Time for the first real idea: how can a computer tell that two movies are alike, when all it can do is arithmetic?
