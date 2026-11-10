@@ -1,0 +1,75 @@
+site_name: Math for AI, From Scratch
+site_description: A visual, intuition-first guide to the math behind modern AI, from vectors to transformers.
+site_author: Vaibhav
+copyright: '© 2026 Vaibhav · Free for learning under CC BY-NC-SA 4.0 · Commercial use needs a licence'
+# After you create the GitHub repo, set these two lines (see README.md):
+# site_url: https://<your-username>.github.io/math-for-ai-from-scratch/
+# repo_url: https://github.com/<your-username>/math-for-ai-from-scratch
+
+nav:
+  - Start here: index.md
+  - "0. The Math Toolkit": 00-toolkit.md
+  - "1. Vectors": 01-vectors.md
+  - "2. Matrices": 02-matrices.md
+  - "3. Derivatives": 03-derivatives.md
+  - "4. The Chain Rule": 04-chain-rule.md
+  - "5. Gradient Descent": 05-gradient-descent.md
+  - "6. Probability and Bayes": 06-probability.md
+  - "7. Distributions": 07-distributions.md
+  - "8. Entropy": 08-entropy.md
+  - "9. A Network That Learns": 09-neural-network.md
+  - "10. Attention": 10-attention.md
+  - Where to go next: next-steps.md
+  - Glossary: glossary.md
+  - Acknowledgements: acknowledgements.md
+  - Licence: license.md
+
+theme:
+  name: material
+  features:
+    - navigation.footer        # previous / next links at the end of every page
+    - navigation.instant
+    - header.autohide          # header slides away while reading, returns on scroll-up
+    - search.highlight
+    - content.code.copy        # copy button on code blocks
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: deep orange
+      toggle: { icon: material/weather-night, name: Dark mode }
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: deep orange
+      toggle: { icon: material/weather-sunny, name: Light mode }
+  icon:
+    logo: material/function-variant
+
+markdown_extensions:
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+extra_javascript:
+  - javascripts/katex.js
+  - javascripts/contents.js
+  - https://unpkg.com/katex@0.16/dist/katex.min.js
+  - https://unpkg.com/katex@0.16/dist/contrib/auto-render.min.js
+extra_css:
+  - https://unpkg.com/katex@0.16/dist/katex.min.css
+  - stylesheets/extra.css
+
+extra:
+  generator: false        # hide 'Made with Material for MkDocs'

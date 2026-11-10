@@ -1,0 +1,124 @@
+/* ---------- Immersive reading layout ----------
+   No sidebars on wide screens: the page is just the text.
+   On phones and tablets the chapter menu stays tucked behind the ☰ button. */
+@media screen and (min-width: 60em) {
+  .md-sidebar--secondary { display: none !important; }   /* "on this page" list */
+}
+@media screen and (min-width: 76.25em) {
+  .md-sidebar--primary { display: none !important; }     /* chapter list */
+}
+
+/* A comfortable reading column, centred, with a slightly larger font */
+.md-content {
+  max-width: 44rem;
+  margin: 0 auto;
+}
+.md-typeset {
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+.md-typeset h1 { font-weight: 600; margin-bottom: 0.8em; }
+.md-typeset h2 { margin-top: 2.2em; }
+
+/* Plots have a light background; give them a card look so they also sit well in dark mode. */
+.md-typeset img[src*="figures/"] {
+  display: block;
+  margin: 1.4em auto;
+  max-width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* History and intuition call-outs (blockquotes) */
+.md-typeset blockquote {
+  border-left: 4px solid var(--md-accent-fg-color);
+  background: var(--md-code-bg-color);
+  padding: 0.4em 1em;
+  border-radius: 0 6px 6px 0;
+  color: var(--md-typeset-color);
+}
+
+/* Mermaid diagrams: centred */
+.md-typeset .mermaid { text-align: center; margin: 1.4em 0; }
+
+/* The "Next:" line at the end of each chapter */
+.md-typeset hr + p strong:first-child { color: var(--md-accent-fg-color); }
+
+/* Make the footer's previous / next links calm rather than a heavy bar */
+.md-footer { background: transparent; color: var(--md-default-fg-color); }
+.md-footer__link { opacity: 0.8; }
+.md-footer__link:hover { opacity: 1; }
+/* Copyright line: small and quiet */
+.md-footer-meta { background: transparent; }
+.md-footer-meta .md-copyright { color: var(--md-default-fg-color--light); font-size: 0.6rem; margin: 0 auto; text-align: center; width: 100%; }
+.md-footer-meta .md-copyright a { color: inherit; text-decoration: underline; }
+
+/* ---------- On-demand contents panel (javascripts/contents.js) ---------- */
+.md-header__button.toc-button { display: none; }
+@media screen and (min-width: 76.25em) {
+  .md-header__button.toc-button { display: inline-block; }   /* phones use Material's own ☰ menu */
+}
+.toc-button { background: none; border: 0; color: inherit; cursor: pointer; }
+.toc-button svg { fill: currentColor; }
+
+.toc-open { overflow: hidden; }                  /* page stays still behind the panel */
+.toc-panel[hidden] { display: none; }
+.toc-panel { position: fixed; inset: 0; z-index: 10; }
+.toc-panel__backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+  animation: toc-fade 0.15s ease-out;
+}
+.toc-panel__box {
+  position: relative;
+  margin: 8vh auto 0;
+  width: min(30rem, 92vw);
+  max-height: 80vh;
+  display: flex; flex-direction: column;
+  background: var(--md-default-bg-color);
+  color: var(--md-default-fg-color);
+  border-radius: 10px;
+  box-shadow: var(--md-shadow-z3);
+  animation: toc-rise 0.18s ease-out;
+  font-size: 0.8rem;
+}
+.toc-panel__head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.9rem 1.2rem 0.5rem;
+  font-weight: 600; letter-spacing: 0.02em;
+}
+.toc-panel__close {
+  background: none; border: 0; cursor: pointer;
+  font-size: 1.4rem; line-height: 1; color: var(--md-default-fg-color--light);
+}
+.toc-panel__body { overflow-y: auto; padding: 0 1.2rem 0.4rem; }
+.toc-panel__chapters { list-style: none; margin: 0; padding: 0; }
+.toc-panel__chapters > li > a {
+  display: block; padding: 0.45rem 0.6rem; border-radius: 6px;
+  color: var(--md-default-fg-color); text-decoration: none;
+}
+.toc-panel__chapters a:hover,
+.toc-panel__chapters a:focus-visible { background: var(--md-code-bg-color); outline: none; }
+.toc-panel__chapters > li.is-current > a { color: var(--md-accent-fg-color); font-weight: 600; }
+.toc-panel__chapters ul {
+  list-style: none; margin: 0.1rem 0 0.5rem 0.9rem; padding: 0 0 0 0.6rem;
+  border-left: 2px solid var(--md-default-fg-color--lightest);
+}
+.toc-panel__chapters ul a {
+  display: block; padding: 0.22rem 0.5rem; border-radius: 5px;
+  color: var(--md-default-fg-color--light); text-decoration: none; font-size: 0.75rem;
+}
+.toc-panel__hint {
+  margin: 0; padding: 0.6rem 1.2rem 0.9rem;
+  font-size: 0.65rem; color: var(--md-default-fg-color--light);
+}
+.toc-panel__hint kbd {
+  font-family: var(--md-code-font-family); font-size: 0.65rem;
+  padding: 0 0.3em; border-radius: 3px; background: var(--md-code-bg-color);
+}
+@keyframes toc-fade { from { opacity: 0; } }
+@keyframes toc-rise { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) {
+  .toc-panel__backdrop, .toc-panel__box { animation: none; }
+}
