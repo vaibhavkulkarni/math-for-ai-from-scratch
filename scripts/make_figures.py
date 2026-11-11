@@ -447,36 +447,80 @@ def ch2():
 
 # ============================ Chapter 3 ============================
 def ch3():
-    f = lambda x: x ** 2
-    x = np.linspace(0, 2.5, 200)
-    fig, ax = plt.subplots(figsize=(6, 4.2))
-    ax.plot(x, f(x), color=INK, lw=2.4, label="f(x) = x²")
-    for x2, c in [(2, ORANGE), (1.5, YELLOW), (1.2, AQUA)]:
-        m = (f(x2) - 1) / (x2 - 1)
-        t = np.linspace(0.2, 2.4, 2)
-        ax.plot(t, 1 + m * (t - 1), color=c, lw=1.6, label=f"secant to x = {x2}: slope {m:.1f}")
-        ax.scatter([x2], [f(x2)], color=c, s=35, zorder=5)
-    t = np.linspace(0.2, 2.4, 2)
-    ax.plot(t, 1 + 2 * (t - 1), color=BLUE, lw=2.6, ls="--", label="tangent at P: slope 2 (the derivative)")
-    ax.scatter([1], [1], color=INK, s=50, zorder=6); ax.annotate("P = (1, 1)", (1, 1), xytext=(1.25, 0.2))
-    ax.set_ylim(-0.5, 6.3); ax.legend(fontsize=8.5, loc="upper left"); ax.set_title("Zoom in: secants settle on the tangent")
+    L = lambda w: (w - 5) ** 2
+    w = np.linspace(-0.5, 10.5, 300)
+
+    # the one-knob network: loss curve, current knob position, a nudge
+    fig, ax = plt.subplots(figsize=(6.4, 4.2))
+    ax.plot(w, L(w), color=INK, lw=2.2)
+    ax.scatter([3], [4], s=70, color=ORANGE, zorder=5, edgecolor=SURF, linewidth=1.5)
+    ax.annotate("the knob is at w = 3\nloss = 4", (3, 4), xytext=(-0.3, 15), fontsize=10, arrowprops=dict(arrowstyle="->", color=INK2))
+    ax.scatter([5], [0], s=70, color=AQUA, zorder=5, edgecolor=SURF, linewidth=1.5)
+    ax.annotate("best setting: w = 5, loss = 0\n(the network doesn't know this)", (5, 0), xytext=(5.6, 8), fontsize=10,
+                arrowprops=dict(arrowstyle="->", color=INK2))
+    ax.set_xlabel("the knob w"); ax.set_ylabel("loss L(w) = (w − 5)²"); ax.set_ylim(-2, 30)
+    ax.set_title("A network with one knob: how wrong it is, for every setting of the knob", fontsize=10.5)
+    save(fig, "ch3_knob.svg")
+
+    # zoom in: secants from w = 3 settle on the tangent, slope -4
+    fig, axs = plt.subplots(1, 2, figsize=(11, 4.2), gridspec_kw={"width_ratios": [1.25, 1]})
+    ax = axs[0]
+    ax.plot(w, L(w), color=INK, lw=2.4, label="loss L(w)")
+    for w2, c in [(4, YELLOW), (3.5, AQUA)]:
+        m = (L(w2) - 4) / (w2 - 3)
+        t = np.linspace(1.2, 5.2, 2)
+        ax.plot(t, 4 + m * (t - 3), color=c, lw=1.6, label=f"nudge to w = {w2}: slope {m:.1f}")
+        ax.scatter([w2], [L(w2)], color=c, s=35, zorder=5)
+    t = np.linspace(1.2, 5.2, 2)
+    ax.plot(t, 4 - 4 * (t - 3), color=BLUE, lw=2.6, ls="--", label="tiny nudges settle on slope −4")
+    ax.scatter([3], [4], color=ORANGE, s=60, zorder=6)
+    ax.add_patch(Rectangle((2.6, 2.4), 0.8, 3.2, fill=False, ec=MUTED, lw=1.2, ls=":"))
+    ax.set_xlim(0.8, 6.5); ax.set_ylim(-2, 14); ax.legend(fontsize=8.5, loc="upper right")
+    ax.set_xlabel("the knob w"); ax.set_ylabel("loss")
+    ax.set_title("Smaller and smaller nudges from w = 3", fontsize=10.5)
+    ax = axs[1]
+    wz = np.linspace(2.6, 3.4, 100)
+    ax.plot(wz, L(wz), color=INK, lw=2.6, label="loss curve")
+    ax.plot(wz, 4 - 4 * (wz - 3), color=BLUE, lw=1.6, ls="--", label="straight line, slope −4")
+    ax.scatter([3], [4], color=ORANGE, s=60, zorder=6)
+    ax.set_xlabel("the knob w (zoomed in)"); ax.legend(fontsize=9, loc="upper right")
+    ax.set_title("Zoomed in, the curve is nearly a straight line", fontsize=10.5)
     save(fig, "ch3_secants.svg")
 
-    # tangents at many points
-    fig, ax = plt.subplots(figsize=(6, 4))
-    x = np.linspace(-3, 3, 200)
-    ax.plot(x, f(x), color=INK, lw=2.2)
-    for x0, c in [(-2, ORANGE), (-1, YELLOW), (0, MUTED), (1, AQUA), (2, BLUE)]:
-        t = np.linspace(x0 - 0.8, x0 + 0.8, 2)
-        ax.plot(t, f(x0) + 2 * x0 * (t - x0), color=c, lw=2.4)
-        ax.scatter([x0], [f(x0)], color=c, s=35, zorder=5)
-        dx = {-2: -0.95, -1: -0.85, 0: 0, 1: 0.85, 2: 0.95}[x0]
-        ax.text(x0 + dx, f(x0) - (0.9 if x0 else 0.75), f"slope {2*x0:+d}".replace("+0", "0"),
-                ha="center", fontsize=9.5, color=INK)
-    ax.set_ylim(-1.5, 9.5); ax.set_title("The derivative of x² is 2x: the slope changes along the curve", fontsize=10.5)
-    ax.text(-1.6, 8.3, "negative slope:\ngoing downhill", color=INK2, fontsize=9, ha="left")
-    ax.text(1.6, 8.3, "positive slope:\ngoing uphill", color=INK2, fontsize=9, ha="right")
+    # the derivative is a slope-finder: tangents at several knob positions
+    fig, ax = plt.subplots(figsize=(6.6, 4.2))
+    ax.plot(w, L(w), color=INK, lw=2.2)
+    for w0, c in [(1, ORANGE), (3, YELLOW), (5, MUTED), (7, AQUA), (9, BLUE)]:
+        t = np.linspace(w0 - 1.1, w0 + 1.1, 2)
+        ax.plot(t, L(w0) + 2 * (w0 - 5) * (t - w0), color=c, lw=2.4)
+        ax.scatter([w0], [L(w0)], color=c, s=35, zorder=5)
+        ax.text(w0 + (-1.25 if w0 < 5 else 1.25 if w0 > 5 else 0), L(w0) - (1.8 if w0 != 5 else 2.4),
+                f"slope {2*(w0-5):+d}".replace("+0", "0"), ha="center", fontsize=9.5)
+    ax.set_ylim(-4, 28); ax.set_xlabel("the knob w"); ax.set_ylabel("loss")
+    ax.text(0.2, 25, "steep downhill:\nturn the knob up", fontsize=9, color=INK2)
+    ax.text(7.6, 25, "uphill:\nturn it down", fontsize=9, color=INK2)
+    ax.set_title("A different slope at every knob position: slope = 2(w − 5)", fontsize=10.5)
     save(fig, "ch3_tangents.svg")
+
+    # why x² has derivative 2x: a growing square
+    fig, ax = plt.subplots(figsize=(5.2, 5.2))
+    ax.grid(False); ax.axis("off")
+    x0, h = 3.0, 0.6
+    ax.add_patch(Rectangle((0, 0), x0, x0, color=BLUE_LIGHT, lw=0))
+    ax.add_patch(Rectangle((x0, 0), h, x0, color=ORANGE, alpha=0.45, lw=0))
+    ax.add_patch(Rectangle((0, x0), x0, h, color=ORANGE, alpha=0.45, lw=0))
+    ax.add_patch(Rectangle((x0, x0), h, h, color=RED, alpha=0.6, lw=0))
+    ax.add_patch(Rectangle((0, 0), x0 + h, x0 + h, fill=False, ec=INK2, lw=1.2))
+    ax.text(x0 / 2, x0 / 2, "old square\narea x²", ha="center", va="center", fontsize=11)
+    ax.text(x0 + h / 2, x0 / 2, "strip\nx × h", ha="center", va="center", fontsize=9.5, rotation=90)
+    ax.text(x0 / 2, x0 + h / 2, "strip  x × h", ha="center", va="center", fontsize=9.5)
+    ax.annotate("tiny corner h × h", (x0 + h / 2, x0 + h / 2), xytext=(x0 + 0.1, x0 + h + 0.45), fontsize=9.5,
+                arrowprops=dict(arrowstyle="->", color=INK2))
+    ax.text(x0 / 2, -0.3, "x", ha="center", fontsize=11); ax.text(x0 + h / 2, -0.3, "h", ha="center", fontsize=11)
+    ax.text(-0.3, x0 / 2, "x", va="center", fontsize=11); ax.text(-0.3, x0 + h / 2, "h", va="center", fontsize=11)
+    ax.set_xlim(-0.6, x0 + h + 0.6); ax.set_ylim(-0.6, x0 + h + 1.0); ax.set_aspect("equal")
+    ax.set_title("Grow a square's side from x to x + h:\nthe area grows by two strips and a tiny corner", fontsize=10.5)
+    save(fig, "ch3_square.svg")
 
     # integral rectangles
     g = lambda x: np.sin(x) + 1.5
