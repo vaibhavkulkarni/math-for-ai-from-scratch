@@ -345,6 +345,23 @@ def ch2b_equations():
     save(fig, "ch2b_equations.svg")
 
 
+def ch2_columns():
+    fig, ax = plt.subplots(figsize=(6.4, 6.2))
+    axes_through_origin(ax)
+    arrow(ax, (0, 0), (2, 1), BLUE, lw=1.6, ls="--"); ax.text(1.1, -1.25, "1 scoop oats\n[2, 1]", color=BLUE, fontsize=9)
+    arrow(ax, (0, 0), (1, 3), ORANGE, lw=1.6, ls="--"); ax.text(-0.25, 2.55, "1 scoop berries\n[1, 3]", color=ORANGE, fontsize=9, ha="right")
+    arrow(ax, (0, 0), (6, 3), BLUE, lw=3)
+    ax.text(4.0, 0.55, "3 scoops oats\n= 3 × [2, 1] = [6, 3]", color=BLUE, fontsize=10.5)
+    arrow(ax, (6, 3), (8, 9), ORANGE, lw=3)
+    ax.text(7.35, 5.0, "+ 2 scoops berries\n= 2 × [1, 3] = [2, 6]", color=ORANGE, fontsize=10.5)
+    arrow(ax, (0, 0), (8, 9), AQUA, lw=2.2, ls="-")
+    ax.scatter([8], [9], s=60, color=INK, zorder=6)
+    ax.text(8.15, 9.3, "bowl: [8, 9]\n8 g protein, 9 g sugar", fontsize=10.5, fontweight="bold")
+    ax.set_xlim(-2.6, 12.5); ax.set_ylim(-1.6, 10.8); ax.set_aspect("equal")
+    ax.set_xlabel("protein (g)"); ax.set_ylabel("sugar (g)")
+    ax.set_title("Columns view: the recipe [3, 2] says how much of each column to add", fontsize=10.5)
+    save(fig, "ch2_columns.svg")
+
 # ============================ Chapter 2 ============================
 def ch2():
     tri = np.array([[0, 0], [1, 0], [0.4, 0.8]])
@@ -1041,5 +1058,5 @@ if __name__ == "__main__":
     timeline()
     ch0_extra()
     extra_topics()
-    for fn in (ch2b_equations, ch1_cosine, ch0, ch1, ch2, ch3, ch5, ch7, ch8, ch9, ch10):
+    for fn in (ch2_columns, ch2b_equations, ch1_cosine, ch0, ch1, ch2, ch3, ch5, ch7, ch8, ch9, ch10):
         fn()

@@ -104,20 +104,43 @@ If the shapes don't match, say a matrix with 3 columns and an input of 4 numbers
 
 ## Step 4: A second way to read the same calculation
 
-Rows-as-questions is one view. Here is another, equally useful one. Work out `[[1, 2], [3, 4]]` times `[5, 6]` row by row:
+Step 2 read a matrix **one row at a time**: each row is a question. You can also read the very same grid **one column at a time**, and it tells a different, equally useful story. An everyday example shows both.
 
-$$
-\begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}
-\begin{bmatrix} 5 \\ 6 \end{bmatrix}
-=
-\begin{bmatrix} 1\times5 + 2\times6 \\ 3\times5 + 4\times6 \end{bmatrix}
-=
-\begin{bmatrix} 17 \\ 39 \end{bmatrix}
-$$
+You are making a breakfast bowl from two ingredients. Here is what one scoop of each contains (made-up numbers):
 
-Now look at the same numbers **column by column**: the output is 5 lots of the first column plus 6 lots of the second column, `5 × [1, 3] + 6 × [2, 4] = [5 + 12, 15 + 24] = [17, 39]`. **The input numbers say how much of each column to mix in.**
+| per scoop | oats | berries |
+| --- | --- | --- |
+| protein (g) | 2 | 1 |
+| sugar (g) | 1 | 3 |
 
-Rows-as-questions and columns-as-ingredients are two views of one calculation. The first is best for understanding layers. The second is best for the pictures that come next.
+That table *is* a matrix, `[[2, 1], [1, 3]]`. Each **column** describes one ingredient, and each **row** is one nutrient. Your recipe is 3 scoops of oats and 2 scoops of berries, the input vector `[3, 2]`. What is in the bowl?
+
+**Reading by rows (Step 2's way): ask one question per row.**
+
+- Total protein = row 1 · recipe = `2×3 + 1×2 = 8`
+- Total sugar = row 2 · recipe = `1×3 + 3×2 = 9`
+
+**Reading by columns: add up the ingredients.**
+
+- 3 scoops of oats bring `3 × [2, 1] = [6, 3]`
+- 2 scoops of berries bring `2 × [1, 3] = [2, 6]`
+- The bowl holds `[6, 3] + [2, 6] = [8, 9]`
+
+Same answer, of course. And here is *why* both ways must agree. Both use the very same four multiplications; they just add them up in a different order:
+
+| | oats column, × 3 | berries column, × 2 | **add across = row view** |
+| --- | --- | --- | --- |
+| protein | 2 × 3 = 6 | 1 × 2 = 2 | **8** |
+| sugar | 1 × 3 = 3 | 3 × 2 = 6 | **9** |
+| **read down = column view** | `[6, 3]` | `[2, 6]` | |
+
+Adding **across** each row gives the row view. Reading **down** each column gives one scaled column per ingredient, and adding those two arrows gives the column view.
+
+So in the column view, **the input numbers say how much of each column to mix in**. The output is "3 lots of column 1, plus 2 lots of column 2". In the picture, that is just Chapter 1's arrow addition: walk along 3 copies of the oats arrow, then 2 copies of the berries arrow.
+
+![The columns view as arrows: the oats column (2, 1) scaled by 3 gives (6, 3), then the berries column (1, 3) scaled by 2 adds (2, 6) tip to tail, ending at the bowl's total (8, 9): 8 g of protein and 9 g of sugar](figures/ch2_columns.svg)
+
+Why bother with a second view? Because it makes one fact obvious that the row view hides. Feed in `[1, 0]`, "1 scoop of oats and no berries", and out comes exactly column 1, `[2, 1]`: the oats arrow. **Each column of a matrix is where one basic arrow lands.** That is the key to the pictures in the next step.
 
 > 🤔 **Pause and predict.** Work out `[[2, 0], [1, 1]]` times `[3, 4]`, either way.
 >
